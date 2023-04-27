@@ -15,8 +15,12 @@ logger = colcon_logger.getChild(__name__)
 class LXDClient(object):
     def __init__(self, ros_distro):
         if system() != 'Linux':
-            raise Exception('Error, only Linux is supported ')
-        self.lxd_client = Client()
+            raise Exception('Error, only Linux is supported')
+
+        try:
+          self.lxd_client = Client()
+        except Exception as e:
+            raise Exception("Failed to initialized LXD client. Make sure LXD is installed (sudo snap install lxd) and initialised (lxd init --auto)")
 
         date_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
         self.container_name = f"colcon-container-build-{date_time}"
