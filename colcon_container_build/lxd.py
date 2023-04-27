@@ -29,13 +29,17 @@ logger = colcon_logger.getChild(__name__)
 
 class LXDClient(object):
     def __init__(self, ros_distro):
-        if system() != 'Linux':
-            raise Exception('Error, only Linux is supported')
+        if system() != "Linux":
+            raise Exception("Error, only Linux is supported")
 
         try:
-          self.lxd_client = Client()
+            self.lxd_client = Client()
         except Exception as e:
-            raise Exception("Failed to initialized LXD client. Make sure LXD is installed (sudo snap install lxd) and initialised (lxd init --auto)")
+            raise Exception(
+                f"Failed to initialized LXD client. \
+                Make sure LXD is installed (sudo snap install lxd) and \
+                initialised (lxd init --auto): {e}"
+            )
 
         date_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
         self.container_name = f"colcon-container-build-{date_time}"
@@ -67,8 +71,13 @@ class LXDClient(object):
         # handle the different versions of ros2
         commands = ['apt-get update',
                     'apt-get install -y software-properties-common curl',
-                    'curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg',
-                    'echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null',
+                    'curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o \
+                    /usr/share/keyrings/ros-archive-keyring.gpg',
+                    'echo "deb [arch=$(dpkg --print-architecture) \
+                    signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+                    http://packages.ros.org/ros2/ubuntu \
+                    $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | \
+                    tee /etc/apt/sources.list.d/ros2.list > /dev/null',
                     'apt-get update',
                     'apt-get upgrade -y',
                     f'apt-get install -y ros-{self.ros_distro}-ros-base',
@@ -77,7 +86,8 @@ class LXDClient(object):
         self._execute_commands(commands)
 
     def _execute_command(self, command):
-        return self.instance.execute(command, stdout_handler=logger.info, stderr_handler=logger.error)
+        return self.instance.execute(command, stdout_handler=logger.info,
+                                     stderr_handler=logger.error)
 
     def _execute_commands(self, commands):
         commands_to_run = "#!/bin/bash\n"

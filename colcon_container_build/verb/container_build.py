@@ -33,7 +33,7 @@ class ContainerBuildVerb(VerbExtensionPoint):
     def add_arguments(self, *, parser):  # noqa: D102
         parser.add_argument(
             '--ros-distro', metavar='ROS_DISTRO',
-            type=str, default='humble',  choices=['humble', 'foxy', 'noetic'],
+            type=str, default='humble', choices=['humble', 'foxy', 'noetic'],
             help='by default, humble. '
             'Possible value')
         parser.add_argument(

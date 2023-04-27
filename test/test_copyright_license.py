@@ -32,7 +32,8 @@ def check_files(paths):
                 '# the Free Software Foundation, either version 3 of the License, or' in lines
             has_apache_license = \
                 '# Licensed under the Apache License, Version 2.0' in lines
-            if not has_copyright or not (has_gnu_v3_license or has_apache_license):
+            if not has_copyright or \
+               not (has_gnu_v3_license or has_apache_license):
                 print(
                     'Could not find copyright / license in:', path,
                     file=sys.stderr)
