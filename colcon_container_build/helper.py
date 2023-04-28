@@ -15,15 +15,18 @@
 
 from platform import processor
 
+
 ros2_ubuntu_distro = {'humble': 'jammy',
                       'foxy': 'focal'}
 
 
 def get_ubuntu_distro(ros_distro):
+    """Return the Ubuntu distro associated to the ROS distro."""
     return ros2_ubuntu_distro[ros_distro]
 
 
 def host_architecture():
+    """Return the host CPU architecture."""
     processor_architecture = {'x86_64': 'amd64',
                               'aarch64': 'arm64'}
     host_processor = processor()

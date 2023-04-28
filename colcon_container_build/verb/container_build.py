@@ -13,18 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from colcon_container_build.lxd import LXDClient
 from colcon_core.package_discovery import add_package_discovery_arguments
 from colcon_core.package_discovery import discover_packages
-from colcon_core.plugin_system import satisfies_version
-from colcon_core.verb import VerbExtensionPoint
 from colcon_core.package_identification \
     import get_package_identification_extensions
-
-from colcon_container_build.lxd import LXDClient
+from colcon_core.plugin_system import satisfies_version
+from colcon_core.verb import VerbExtensionPoint
 
 
 class ContainerBuildVerb(VerbExtensionPoint):
-    """call a colcon command inside a fresh container"""
+    """call a colcon command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
@@ -32,13 +31,20 @@ class ContainerBuildVerb(VerbExtensionPoint):
 
     def add_arguments(self, *, parser):  # noqa: D102
         parser.add_argument(
-            '--ros-distro', metavar='ROS_DISTRO',
-            type=str, default='humble', choices=['humble', 'foxy', 'noetic'],
-            help='by default, humble. '
-            'Possible value')
+            '--ros-distro',
+            metavar='ROS_DISTRO',
+            type=str,
+            default='humble',
+            choices=['humble', 'foxy', 'noetic'],
+            help='ROS version, by default, humble.'
+        )
         parser.add_argument(
-            '--colcon-build-args', default='', metavar='*', type=str.lstrip,
-            help='Pass arguments to the colcon build command')
+            '--colcon-build-args',
+            default='',
+            metavar='*',
+            type=str.lstrip,
+            help='Pass arguments to the colcon build command',
+        )
 
         add_package_discovery_arguments(parser)
 
