@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ros_ws/src/ros2demo
-          repository: https://github.com/ros2/demos.git
+          repository: ros2/demos
           branch: ${{ matrix.ros_version }}
       - name: Colcon container build
         run: |
