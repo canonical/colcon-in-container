@@ -1,0 +1,47 @@
+name: colcon container build integration tests
+on:
+  push:
+    branches: ['main']
+  pull_request:
+  schedule:
+    # Every two weeks
+    - cron: '30 1 1,15 * *'
+
+# Test the released and current master branch
+jobs:
+  container_build_integration_test:
+    name: "Integration Test"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
+        ros_version: [foxy, humble]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+        # with:
+        #   path: src/colcon-container-build
+      - uses: actions/setup-python@v4
+      - uses: canonical/setup-lxd@v0.1.0
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo -H pip3 install setuptools
+      - name: Install the extension
+        run: |
+          sudo -H pip3 install -U .
+      - name: Checkout example to build
+        uses: actions/checkout@v3
+        with:
+          path: ros_ws/src/ros2demo
+          repository: https://github.com/ros2/demos.git
+          branch: ${{ matrix.ros_version }}
+      - name: Colcon container build
+        run: |
+          cd ros_ws
+          colcon container-build --ros-distro ${{ matrix.ros_version }} --colcon-build-args --packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release
+      - name: verify files
+        run: |
+          cd ros_ws
+          grep ${{ matrix.ros_version }} colcon-container-build-*/install/demo_nodes_cpp/share/local_setup.sh
