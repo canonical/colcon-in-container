@@ -27,10 +27,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo -H pip3 install setuptools
+          python -m pip install --upgrade pip
+          #sudo -H pip3 install setuptools
+          pip3 install setuptools
       - name: Install the extension
         run: |
-          sudo -H pip3 install -U .
+          pip3 install .
       - name: Checkout example to build
         uses: actions/checkout@v3
         with:
