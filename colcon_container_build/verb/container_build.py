@@ -14,12 +14,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from colcon_container_build.lxd import LXDClient
+from colcon_core.logging import colcon_logger
 from colcon_core.package_discovery import add_package_discovery_arguments
 from colcon_core.package_discovery import discover_packages
 from colcon_core.package_identification \
     import get_package_identification_extensions
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
+
+
+logger = colcon_logger.getChild(__name__)
 
 
 class ContainerBuildVerb(VerbExtensionPoint):
@@ -55,6 +59,8 @@ class ContainerBuildVerb(VerbExtensionPoint):
         # copy packages into the container
         extension = get_package_identification_extensions()
         discovered_packages = discover_packages(context.args, extension)
+        logger.info(f'Discovered {len(discovered_packages)}, uploading them in the container')
+        print(f'Discovered {len(discovered_packages)}, uploading them in the container')
         for package in discovered_packages:
             lxd_client.upload_package(package.name, package.path)
 

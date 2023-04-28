@@ -20,19 +20,18 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-        # with:
-        #   path: src/colcon-container-build
       - uses: actions/setup-python@v4
       - uses: canonical/setup-lxd@v0.1.0
       - name: Install dependencies
         run: |
           sudo apt update
+          sudo apt upgrade -y
           python -m pip install --upgrade pip
-          #sudo -H pip3 install setuptools
-          pip3 install setuptools
+          pip install setuptools
+          pip install colcon-common-extensions
       - name: Install the extension
         run: |
-          pip3 install .
+          pip install .
       - name: Checkout example to build
         uses: actions/checkout@v3
         with:
@@ -42,8 +41,10 @@ jobs:
       - name: Colcon container build
         run: |
           cd ros_ws
-          colcon container-build --ros-distro ${{ matrix.ros_version }} --colcon-build-args --packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release
+          colcon container-build --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: verify files
         run: |
           cd ros_ws
-          grep ${{ matrix.ros_version }} colcon-container-build-*/install/demo_nodes_cpp/share/local_setup.sh
+          #cat colcon-container-build-*/install/demo_nodes_cpp/share/local_setup.sh
+          #grep ${{ matrix.ros_version }} colcon-container-build-*/install/demo_nodes_cpp/share/local_setup.sh
+          find . -type d -name "colcon-container-build-*" -exec grep ${{ matrix.ros_version }} {}/install/demo_nodes_cpp/share/local_setup.sh \;
