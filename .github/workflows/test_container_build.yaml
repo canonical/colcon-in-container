@@ -36,7 +36,7 @@ jobs:
         with:
           path: ros_ws/src/ros2demo
           repository: ros2/demos
-          branch: ${{ matrix.ros_version }}
+          ref: ${{ matrix.ros_version }}
       - name: Colcon container build
         run: |
           cd ros_ws
