@@ -59,8 +59,8 @@ class ContainerBuildVerb(VerbExtensionPoint):
         # copy packages into the container
         extension = get_package_identification_extensions()
         discovered_packages = discover_packages(context.args, extension)
-        logger.info(f'Discovered {len(discovered_packages)}, uploading them in the container')
-        print(f'Discovered {len(discovered_packages)}, uploading them in the container')
+        logger.info(f'Discovered {len(discovered_packages)}, '
+                    'uploading them in the container')
         for package in discovered_packages:
             lxd_client.upload_package(package.name, package.path)
 
