@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
 import logging
 import os
 from platform import system
@@ -43,8 +42,7 @@ class LXDClient(object):
                 f'initialised (lxd init --auto): {e}'
             )
 
-        date_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-        self.container_name = f'colcon-container-build-{date_time}'
+        self.container_name = 'colcon-container-build'
         self.ros_distro = ros_distro
         ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.source_ros_install = f'. /opt/ros/{self.ros_distro}/setup.bash'
@@ -133,9 +131,7 @@ class LXDClient(object):
         if not os.path.exists(self.container_name):
             os.mkdir(self.container_name)
 
-        self.instance.files.recursive_get(
-            '/ws/install', os.path.join(self.container_name, 'install')
-        )
+        self.instance.files.recursive_get('/ws/install', self.container_name)
 
     def upload_package(self, package_name, package_path):
         """Upload package to container workspace."""

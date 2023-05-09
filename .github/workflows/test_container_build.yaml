@@ -45,6 +45,4 @@ jobs:
       - name: verify files
         run: |
           cd ros_ws
-          #cat colcon-container-build-*/install/demo_nodes_cpp/share/local_setup.sh
-          #grep ${{ matrix.ros_version }} colcon-container-build-*/install/demo_nodes_cpp/share/local_setup.sh
-          find . -type d -name "colcon-container-build-*" -exec grep ${{ matrix.ros_version }} {}/install/demo_nodes_cpp/share/local_setup.sh \;
+          grep ${{ matrix.ros_version }} colcon-container-build/demo_nodes_cpp/share/local_setup.sh
