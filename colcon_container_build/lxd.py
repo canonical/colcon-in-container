@@ -62,6 +62,12 @@ class LXDClient(object):
             },
         }
 
+        if self.lxd_client.instances.exists(self.container_name):
+            previous_instance = self.lxd_client.instances.get(self.container_name)
+            if previous_instance.status == 'Running':
+                previous_instance.stop(wait=True)
+            previous_instance.delete()
+
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
         self._install_ros()
