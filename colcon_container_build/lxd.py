@@ -134,8 +134,8 @@ class LXDClient(object):
 
     def _download_results(self):
         logger.info('downloading install/ on host')
-        if not os.path.exists(self.container_name):
-            os.mkdir(self.container_name)
+        if os.path.exists(self.container_name):
+            os.rmdir(self.container_name)
 
         self.instance.files.recursive_get('/ws/install', self.container_name)
 
