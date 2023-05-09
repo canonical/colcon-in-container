@@ -32,7 +32,7 @@ class LXDClient(object):
 
     def __init__(self, ros_distro):  # noqa: D107
         if system() != 'Linux':
-            raise Exception('Error, only Linux is supported')
+            raise Exception('LXDClient is only supported on Linux')
 
         try:
             self.lxd_client = Client()
