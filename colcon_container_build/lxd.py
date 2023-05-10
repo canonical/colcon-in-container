@@ -15,6 +15,8 @@
 
 import logging
 import os
+import shutil
+
 from platform import system
 
 from colcon_container_build.helper \
@@ -135,7 +137,7 @@ class LXDClient(object):
     def _download_results(self):
         logger.info('downloading install/ on host')
         if os.path.exists(self.container_name):
-            os.rmdir(self.container_name)
+            shutil.rmtree(self.container_name, ignore_errors=True)
 
         self.instance.files.recursive_get('/ws/install', self.container_name)
 
