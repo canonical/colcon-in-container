@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from os import getenv
+import sys
+
 from colcon_container_build.lxd import LXDClient
 from colcon_core.logging import colcon_logger
 from colcon_core.package_discovery import add_package_discovery_arguments
@@ -25,6 +29,8 @@ from colcon_core.verb import VerbExtensionPoint
 
 logger = colcon_logger.getChild(__name__)
 
+ros_distro_choices = ['humble', 'foxy']
+
 
 class ContainerBuildVerb(VerbExtensionPoint):
     """call a colcon command inside a fresh container."""
@@ -34,13 +40,18 @@ class ContainerBuildVerb(VerbExtensionPoint):
         satisfies_version(VerbExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
 
     def add_arguments(self, *, parser):  # noqa: D102
+
+        ros_distro_env = getenv('ROS_DISTRO')
+
         parser.add_argument(
             '--ros-distro',
             metavar='ROS_DISTRO',
             type=str,
-            default='humble',
-            choices=['humble', 'foxy', 'noetic'],
-            help='ROS version, by default, humble.'
+            choices=ros_distro_choices,
+            default=ros_distro_env,
+            required=not ros_distro_env,
+            help='ROS version, can also be set by the environment variable '
+                  'ROS_DISTRO.'
         )
         parser.add_argument(
             '--colcon-build-args',
@@ -53,6 +64,13 @@ class ContainerBuildVerb(VerbExtensionPoint):
         add_package_discovery_arguments(parser)
 
     def main(self, *, context):  # noqa: D102
+
+        if context.args.ros_distro not in ros_distro_choices:
+            logger.error(f'The ROS_DISTRO={context.args.ros_distro} '
+                         'environement variable is not a viable '
+                         '--ros-distro argument. See --ros-distro to set '
+                         'valid ros-distro')
+            sys.exit(1)
 
         lxd_client = LXDClient(context.args.ros_distro)
 
