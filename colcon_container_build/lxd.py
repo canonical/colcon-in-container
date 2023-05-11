@@ -62,13 +62,13 @@ class LXDClient(object):
                 'server': 'https://images.linuxcontainers.org',
                 'alias': f'ubuntu/{ubuntu_distro}/{host_architecture()}',
             },
+            'ephemeral': True,
         }
 
         if self.lxd_client.instances.exists(self.container_name):
             previous_instance = self.lxd_client.instances.get(self.container_name)
             if previous_instance.status == 'Running':
                 previous_instance.stop(wait=True)
-            previous_instance.delete()
 
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
@@ -78,7 +78,6 @@ class LXDClient(object):
         if self.instance:
             if self.instance.status == 'Running':
                 self.instance.stop(wait=True)
-            self.instance.delete()
 
     def _install_ros(self):
         # handle the different versions of ros2
