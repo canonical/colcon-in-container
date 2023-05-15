@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from functools import partial
 import logging
 import os
 from platform import system
@@ -72,7 +73,8 @@ class LXDClient(object):
 
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
-        self._install_ros()
+        if self._install_ros().exit_code:
+            raise Exception('Failed to install ROS in the container')
 
     def __del__(self):  # noqa: D105
         if self.instance:
@@ -98,7 +100,7 @@ class LXDClient(object):
             'apt-get install -y ros-dev-tools',
         ]
 
-        self._execute_commands(commands)
+        return self._execute_commands(commands)
 
     def _execute_command(self, command):
         return self.instance.execute(
@@ -109,7 +111,7 @@ class LXDClient(object):
         commands_to_run = '#!/bin/bash\n'
         commands_to_run += '\n'.join(commands)
         self.instance.files.put('/tmp/script', commands_to_run)
-        self._execute_command(['bash', '/tmp/script'])
+        return self._execute_command(['bash','-xe',  '/tmp/script'])
 
     def _call_rosdep(self):
         # initialize and call rosdep over our repository
@@ -121,7 +123,7 @@ class LXDClient(object):
             'rosdep install --from-paths /ws/src --ignore-src -y',
         ]
 
-        self._execute_commands(commands)
+        return self._execute_commands(commands)
 
     def _build(self, colcon_build_args):
         logger.info('building workspace')
@@ -131,14 +133,14 @@ class LXDClient(object):
             'cd /ws',
             f'colcon build {colcon_build_args}',
         ]
-        self._execute_commands(commands)
+        return self._execute_commands(commands)
 
     def _download_results(self):
         logger.info('downloading install/ on host')
         if os.path.exists(self.container_name):
             shutil.rmtree(self.container_name, ignore_errors=True)
 
-        self.instance.files.recursive_get('/ws/install', self.container_name)
+        return self.instance.files.recursive_get('/ws/install', self.container_name)
 
     def upload_package(self, package_name, package_path):
         """Upload package to container workspace."""
@@ -153,9 +155,13 @@ class LXDClient(object):
         Pull build-time dependencies, build the workspace and download the
         result build directory.
         """
-        self._call_rosdep()
-        self._build(colcon_build_args)
-        self._download_results()
+        commands = [self._call_rosdep,
+                    partial(self._build, colcon_build_args),
+                    self._download_results]
+        for command in commands:
+            ret = command()
+            if ret.exit_code:
+                return
 
     def shell(self):
         """Shell into the container."""
