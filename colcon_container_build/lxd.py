@@ -15,9 +15,9 @@
 
 import logging
 import os
-import shutil
-
 from platform import system
+import shutil
+import subprocess
 
 from colcon_container_build.helper \
     import get_ubuntu_distro, host_architecture
@@ -156,3 +156,9 @@ class LXDClient(object):
         self._call_rosdep()
         self._build(colcon_build_args)
         self._download_results()
+
+    def shell(self):
+        """Shell into the container."""
+        subprocess.run(['lxc', 'exec', self.container_name,
+                        '--cwd', '/ws',
+                        '--','bash'])

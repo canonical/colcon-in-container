@@ -61,6 +61,13 @@ class ContainerBuildVerb(VerbExtensionPoint):
             help='Pass arguments to the colcon build command',
         )
 
+        parser.add_argument(
+            '--debug',
+            action='store_true',
+            help='Shell into the environment at then end of the build or if '
+                  'there is an error',
+        )
+
         add_package_discovery_arguments(parser)
 
     def main(self, *, context):  # noqa: D102
@@ -83,5 +90,8 @@ class ContainerBuildVerb(VerbExtensionPoint):
             lxd_client.upload_package(package.name, package.path)
 
         lxd_client.build(context.args.colcon_build_args)
+
+        if context.args.debug:
+            lxd_client.shell()
 
         return 0
