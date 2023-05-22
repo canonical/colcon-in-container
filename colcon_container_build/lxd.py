@@ -117,10 +117,9 @@ class LXDClient(object):
         # initialize and call rosdep over our repository
         logger.info('installing and calling rosdep')
         commands = [
-            self.source_ros_install,
             'rosdep init',
             'rosdep update',
-            'rosdep install --from-paths /ws/src --ignore-src -y',
+            f'rosdep install --from-paths /ws/src --ignore-src -y --rosdistro={self.ros_distro}',
         ]
 
         return self._execute_commands(commands)

@@ -16,12 +16,7 @@ packages:
   - git
   - lsb-release
   - python3
-  - python3-pip
-  - software-properties-common
   - python3-colcon-common-extensions
+  - python3-pip
   - python3-rosdep
-  - python3-setuptools
-  - python3-vcstool
-  - ros-{{ v1.ros_release }}-ros-base
-  - ros-dev-tools
-
+  - python3-rosinstall
