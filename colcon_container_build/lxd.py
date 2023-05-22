@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import partial
-import jinja2
 import logging
 import os
 from platform import system
@@ -28,7 +27,6 @@ from pylxd import Client, exceptions
 
 
 logger = colcon_logger.getChild(__name__)
-
 
 class LXDClient(object):
     """LXD client interacting with the LXD socket."""
@@ -51,10 +49,11 @@ class LXDClient(object):
         ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.source_ros_install = f'. /opt/ros/{self.ros_distro}/setup.bash'
 
+        self.logger_container = logger.getChild('container')
         # Handler to remove line breaks
         handler = logging.StreamHandler()
         handler.terminator = ''
-        logger.addHandler(handler)
+        self.logger_container.addHandler(handler)
 
         config = {
             'name': self.container_name,
@@ -79,6 +78,8 @@ class LXDClient(object):
             previous_instance = self.lxd_client.instances.get(self.container_name)
             if previous_instance.status == 'Running':
                 previous_instance.stop(wait=True)
+            else:
+                previous_instance.delete(wait=True)
 
         logger.info('Downloading the image then creating the LXD instance')
         self.instance = self.lxd_client.instances.create(config, wait=True)
@@ -93,7 +94,7 @@ class LXDClient(object):
 
     def _execute_command(self, command):
         return self.instance.execute(
-            command, stdout_handler=logger.info, stderr_handler=logger.error
+            command, stdout_handler=self.logger_container.info, stderr_handler=self.logger_container.error
         )
 
     def _execute_commands(self, commands):

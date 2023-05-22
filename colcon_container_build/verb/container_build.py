@@ -92,6 +92,7 @@ class ContainerBuildVerb(VerbExtensionPoint):
         lxd_client.build(context.args.colcon_build_args)
 
         if context.args.debug:
+            logger.info(f'Debug was selected, entering the container.')
             lxd_client.shell()
 
         return 0
