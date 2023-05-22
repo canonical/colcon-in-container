@@ -26,7 +26,7 @@ def test_spell_check():
             '--spelling-dict=en_US',
             '--ignore-comments=no',
             '--spelling-private-dict-file=' + str(spell_check_words_path),
-            str(Path(__file__).parents[1] / 'colcon_container_build'),
+            str(Path(__file__).parents[1] / 'colcon_build_in_container'),
         ] + [
             str(p) for p in
             (Path(__file__).parents[1] / 'test').glob('**/*.py')

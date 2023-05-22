@@ -17,7 +17,7 @@
 from os import getenv
 import sys
 
-from colcon_container_build.lxd import LXDClient
+from colcon_build_in_container.lxd import LXDClient
 from colcon_core.logging import colcon_logger
 from colcon_core.package_discovery import add_package_discovery_arguments
 from colcon_core.package_discovery import discover_packages
@@ -32,7 +32,7 @@ logger = colcon_logger.getChild(__name__)
 ros_distro_choices = ['humble', 'foxy']
 
 
-class ContainerBuildVerb(VerbExtensionPoint):
+class BuildInContainerVerb(VerbExtensionPoint):
     """call a colcon command inside a fresh container."""
 
     def __init__(self):  # noqa: D107

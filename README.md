@@ -1,4 +1,4 @@
-# colcon-container-build
+# colcon-build-in-container
 
 colcon verb extension to build everything inside a container and transfert the restults back to the host
 

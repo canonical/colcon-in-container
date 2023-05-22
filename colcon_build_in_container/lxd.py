@@ -20,7 +20,7 @@ from platform import system
 import shutil
 import subprocess
 
-from colcon_container_build.helper \
+from colcon_build_in_container.helper \
     import get_ubuntu_distro, host_architecture
 from colcon_core.logging import colcon_logger
 from pylxd import Client, exceptions
@@ -44,7 +44,7 @@ class LXDClient(object):
                 f'initialised (lxd init --auto): {e}'
             )
 
-        self.container_name = 'colcon-container-build'
+        self.container_name = 'colcon-build-in-container'
         self.ros_distro = ros_distro
         ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.source_ros_install = f'. /opt/ros/{self.ros_distro}/setup.bash'

@@ -1,4 +1,4 @@
-name: colcon container build integration tests
+name: colcon build in container integration tests
 on:
   push:
     branches: ['main']
@@ -9,7 +9,7 @@ on:
 
 # Test the released and current master branch
 jobs:
-  container_build_integration_test:
+  build_in_container_integration_test:
     name: "Integration Test"
     strategy:
       fail-fast: false
@@ -38,11 +38,11 @@ jobs:
           path: ros_ws/src/ros2demo
           repository: ros2/demos
           ref: ${{ matrix.ros_version }}
-      - name: Colcon container build
+      - name: Colcon build in container
         run: |
           cd ros_ws
-          colcon container-build --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
+          colcon build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: verify files
         run: |
           cd ros_ws
-          grep ${{ matrix.ros_version }} colcon-container-build/demo_nodes_cpp/share/demo_nodes_cpp/local_setup.sh
+          grep ${{ matrix.ros_version }} colcon-build-in-container/demo_nodes_cpp/share/demo_nodes_cpp/local_setup.sh
