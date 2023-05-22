@@ -73,18 +73,7 @@ class LXDClient(object):
         cloud_init_file = os.path.join(
             config_directory, 'cloud-init.yaml')
         with open(cloud_init_file, 'r') as f:
-            environment = jinja2.Environment()
-            template = environment.from_string(f.read())
-            user_data : dict
-            user_data = template.render(
-                v1 = {
-                    'machine': host_architecture(),
-                    'distro_release': get_ubuntu_distro(self.ros_distro),
-                    'ros_release': self.ros_distro,
-                }
-            )
-
-            config['config']['user.user-data'] = f'{user_data}'
+            config['config']['user.user-data'] = f'{f.read()}'
 
         if self.lxd_client.instances.exists(self.container_name):
             previous_instance = self.lxd_client.instances.get(self.container_name)

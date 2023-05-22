@@ -1,10 +1,12 @@
 ## template: jinja
 #cloud-config
 
+{% set archmap={'x86_64':'amd64', 'aarch64':'arm64', 'armv7l': 'armhf', 'riscv64': 'riscv64'} %}
+
 apt:
   sources:
     ros2:
-      source: "deb [arch={{ v1.machine }}] http://repo.ros2.org/ubuntu/main {{ v1.distro_release }} main"
+      source: "deb [arch={{ archmap[v1.machine] }}] http://repo.ros2.org/ubuntu/main {{ v1.distro_release }} main"
       keyid: C1CF 6E31 E6BA DE88 68B1 72B4 F42E D6FB AB17 C654
 package_update: true
 package_upgrade: true
