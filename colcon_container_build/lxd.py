@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import partial
+import jinja2
 import logging
 import os
 from platform import system
@@ -61,46 +62,45 @@ class LXDClient(object):
                 'type': 'image',
                 'protocol': 'simplestreams',
                 'server': 'https://images.linuxcontainers.org',
-                'alias': f'ubuntu/{ubuntu_distro}/{host_architecture()}',
+                'alias': f'ubuntu/{ubuntu_distro}/cloud/{host_architecture()}',
             },
             'ephemeral': True,
+            'config': {},
         }
+
+        config_directory = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)), 'config')
+        cloud_init_file = os.path.join(
+            config_directory, 'cloud-init.yaml')
+        with open(cloud_init_file, 'r') as f:
+            environment = jinja2.Environment()
+            template = environment.from_string(f.read())
+            user_data : dict
+            user_data = template.render(
+                v1 = {
+                    'machine': host_architecture(),
+                    'distro_release': get_ubuntu_distro(self.ros_distro),
+                    'ros_release': self.ros_distro,
+                }
+            )
+
+            config['config']['user.user-data'] = f'{user_data}'
 
         if self.lxd_client.instances.exists(self.container_name):
             previous_instance = self.lxd_client.instances.get(self.container_name)
             if previous_instance.status == 'Running':
                 previous_instance.stop(wait=True)
 
+        logger.info('Downloading the image then creating the LXD instance')
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
-        if self._install_ros().exit_code:
-            raise Exception('Failed to install ROS in the container')
+        logger.info('Waiting for ROS 2 to be installed')
+        self._execute_command(["cloud-init", "status", "--wait"])
 
     def __del__(self):  # noqa: D105
         if self.instance:
             if self.instance.status == 'Running':
                 self.instance.stop(wait=True)
-
-    def _install_ros(self):
-        # handle the different versions of ros2
-        commands = [
-            'apt-get update',
-            'apt-get install -y software-properties-common curl',
-            'curl -sSL '
-            'https://raw.githubusercontent.com/ros/rosdistro/master/ros.key '
-            '-o /usr/share/keyrings/ros-archive-keyring.gpg',
-            'echo "deb [arch=$(dpkg --print-architecture) '
-            'signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] '
-            'http://packages.ros.org/ros2/ubuntu '
-            '$(. /etc/os-release && echo $UBUNTU_CODENAME) main" | '
-            'tee /etc/apt/sources.list.d/ros2.list > /dev/null',
-            'apt-get update',
-            'apt-get upgrade -y',
-            f'apt-get install -y ros-{self.ros_distro}-ros-base',
-            'apt-get install -y ros-dev-tools',
-        ]
-
-        return self._execute_commands(commands)
 
     def _execute_command(self, command):
         return self.instance.execute(
@@ -156,12 +156,13 @@ class LXDClient(object):
         result build directory.
         """
         commands = [self._call_rosdep,
-                    partial(self._build, colcon_build_args),
-                    self._download_results]
+                    partial(self._build, colcon_build_args)]
         for command in commands:
             ret = command()
             if ret.exit_code:
                 return
+
+        self._download_results()
 
     def shell(self):
         """Shell into the container."""

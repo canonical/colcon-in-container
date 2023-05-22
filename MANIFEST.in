@@ -1,0 +1,2 @@
+include colcon_container_build/config/*
+
