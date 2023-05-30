@@ -64,7 +64,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
         parser.add_argument(
             '--debug',
             action='store_true',
-            help='Shell into the environment at then end of the build or if '
+            help='Shell into the environment at the end of the build or if '
                   'there is an error',
         )
 
