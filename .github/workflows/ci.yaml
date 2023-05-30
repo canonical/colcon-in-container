@@ -29,4 +29,7 @@ jobs:
         with:
           python-version: ${{matrix.python}}
       - uses: colcon/ci@v1
+      - name: Run mypy
+        run: |
+          mypy --ignore-missing-imports .
 
