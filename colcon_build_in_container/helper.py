@@ -16,13 +16,13 @@
 from platform import processor
 
 
-ros2_ubuntu_distro = {'humble': 'jammy',
+_ros2_ubuntu_distro = {'humble': 'jammy',
                       'foxy': 'focal'}
 
 
 def get_ubuntu_distro(ros_distro):
     """Return the Ubuntu distro associated to the ROS distro."""
-    return ros2_ubuntu_distro[ros_distro]
+    return _ros2_ubuntu_distro[ros_distro]
 
 
 def host_architecture():
