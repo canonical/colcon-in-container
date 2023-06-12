@@ -74,9 +74,9 @@ class BuildInContainerVerb(VerbExtensionPoint):
 
         if context.args.ros_distro not in ros_distro_choices:
             logger.error(f'The ROS_DISTRO={context.args.ros_distro} '
-                         'environement variable is not a viable '
+                         'environment variable is not a viable '
                          '--ros-distro argument. See --ros-distro to set '
-                         'valid ros-distro')
+                         'a valid ros-distro')
             sys.exit(1)
 
         lxd_client = LXDClient(context.args.ros_distro)
