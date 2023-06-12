@@ -26,17 +26,35 @@ colcon build-in-container --log-level=info --ros-distro humble --colcon-build-ar
 
 Usage help:
 ```
-colcon build-in-container --help
+$ colcon build-in-container --help
+
+usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--paths [PATH [PATH ...]]]
+
+call a colcon command inside a fresh container.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO
+                        ROS version, can also be set by the environment variable ROS_DISTRO.
+  --colcon-build-args *
+                        Pass arguments to the colcon build command
+  --debug               Shell into the environment at the end of the build or if there is an error
+
+Discovery arguments:
+  --paths [PATH [PATH ...]]
+                        The paths to check for a package. Use shell wildcards (e.g. `src/*`) to select all direct subdirectories (default: .)
 ```
 
-By default `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable. This can be overwritten with the option `--ros-distro`
+By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
+This can be overwritten with the option `--ros-distro` allowing one to compile for a different ROS distribution than the one associated with the host OS.
 
 ## Use cases
 The colcon `build-in-container` can be used to:
-- Build a ROS 2 pacakge before releasing it
-- Make sure that your `pacakge.xml` are up to date
+- Build a ROS 2 package in a clean environment before releasing it
+- Build a ROS 2 package for a different ROS distribution
+- Make sure that your `package.xml` are up to date
 - Build a ROS 2 workspace with a ROS 2 version you haven't installed
-- Anything you can imagine!
+- And more!
 
 ## Troubleshooting
 If you have issues with pylxd and openssl:
