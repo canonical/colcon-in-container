@@ -33,7 +33,7 @@ ros_distro_choices = ['humble', 'foxy']
 
 
 class BuildInContainerVerb(VerbExtensionPoint):
-    """call a colcon command inside a fresh container."""
+    """call a colcon build command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
