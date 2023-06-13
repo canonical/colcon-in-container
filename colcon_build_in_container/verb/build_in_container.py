@@ -19,10 +19,9 @@ import sys
 
 from colcon_build_in_container.lxd import LXDClient
 from colcon_core.logging import colcon_logger
-from colcon_core.package_discovery import add_package_discovery_arguments
-from colcon_core.package_discovery import discover_packages
-from colcon_core.package_identification \
-    import get_package_identification_extensions
+from colcon_core.package_selection import add_arguments \
+    as add_packages_arguments
+from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
 
@@ -68,7 +67,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
                   'there is an error',
         )
 
-        add_package_discovery_arguments(parser)
+        add_packages_arguments(parser)
 
     def main(self, *, context):  # noqa: D102
 
@@ -82,11 +81,13 @@ class BuildInContainerVerb(VerbExtensionPoint):
         lxd_client = LXDClient(context.args.ros_distro)
 
         # copy packages into the container
-        extension = get_package_identification_extensions()
-        discovered_packages = discover_packages(context.args, extension)
-        logger.info(f'Discovered {len(discovered_packages)}, '
+        decorators = get_packages(context.args, recursive_categories=('run', ))
+        logger.info(f'Discovered {len(decorators)}, '
                     'uploading them in the container')
-        for package in discovered_packages:
+        for decorator in decorators:
+            package = decorator.descriptor
+            if not decorator.selected:
+                continue
             lxd_client.upload_package(package.name, package.path)
 
         lxd_client.build(context.args.colcon_build_args)
