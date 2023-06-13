@@ -45,6 +45,7 @@ class LXDClient(object):
             )
 
         self.container_name = 'colcon-build-in-container'
+        self.host_install_folder = 'install_in_container'
         self.ros_distro = ros_distro
         ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.source_ros_install = f'. /opt/ros/{self.ros_distro}/setup.bash'
@@ -126,10 +127,10 @@ class LXDClient(object):
 
     def _download_results(self):
         logger.info('downloading install/ on host')
-        if os.path.exists(self.container_name):
-            shutil.rmtree(self.container_name, ignore_errors=True)
+        if os.path.exists(self.host_install_folder):
+            shutil.rmtree(self.host_install_folder, ignore_errors=True)
 
-        return self.instance.files.recursive_get('/ws/install', self.container_name)
+        return self.instance.files.recursive_get('/ws/install', self.host_install_folder)
 
     def upload_package(self, package_name, package_path):
         """Upload package to container workspace."""
