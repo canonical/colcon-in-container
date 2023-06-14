@@ -18,6 +18,7 @@ from os import getenv
 import sys
 
 from colcon_build_in_container.lxd import LXDClient
+from colcon_core.command import add_log_level_argument
 from colcon_core.logging import colcon_logger
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
@@ -66,7 +67,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
             help='Shell into the environment at the end of the build or if '
                   'there is an error',
         )
-
+        add_log_level_argument(parser)
         add_packages_arguments(parser)
 
     def main(self, *, context):  # noqa: D102
