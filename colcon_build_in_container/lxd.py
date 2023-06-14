@@ -124,8 +124,10 @@ class LXDClient(object):
         logger.info('downloading install/ on host')
         if os.path.exists(self.host_install_folder):
             shutil.rmtree(self.host_install_folder, ignore_errors=True)
-
-        return self.instance.files.recursive_get('/ws/install', self.host_install_folder)
+        try:
+            self.instance.files.recursive_get('/ws/install', self.host_install_folder)
+        except exceptions.NotFound:
+            logger.warn('/ws/install was empty. Are you sure you built packages?')
 
     def upload_package(self, package_name, package_path):
         """Upload package to container workspace."""
