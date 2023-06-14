@@ -48,7 +48,6 @@ class LXDClient(object):
         self.host_install_folder = 'install_in_container'
         self.ros_distro = ros_distro
         ubuntu_distro = get_ubuntu_distro(self.ros_distro)
-        self.source_ros_install = f'. /opt/ros/{self.ros_distro}/setup.bash'
 
         self.logger_container = logger.getChild('container')
         # Handler to remove line breaks
@@ -95,14 +94,16 @@ class LXDClient(object):
 
     def _execute_command(self, command):
         return self.instance.execute(
-            command, stdout_handler=self.logger_container.info, stderr_handler=self.logger_container.error
+            command, stdout_handler=self.logger_container.info, stderr_handler=self.logger_container.error,
+            cwd='/ws'
         )
 
     def _execute_commands(self, commands):
         commands_to_run = '#!/bin/bash\n'
+        commands_to_run += 'export DEBIAN_FRONTEND=noninteractive\n'
         commands_to_run += '\n'.join(commands)
         self.instance.files.put('/tmp/script', commands_to_run)
-        return self._execute_command(['bash','-xe',  '/tmp/script'])
+        return self._execute_command(['bash','-xe', '/tmp/script'])
 
     def _call_rosdep(self):
         # initialize and call rosdep over our repository
@@ -116,14 +117,8 @@ class LXDClient(object):
         return self._execute_commands(commands)
 
     def _build(self, colcon_build_args):
-        logger.info('building workspace')
-        print(colcon_build_args)
-        commands = [
-            self.source_ros_install,
-            'cd /ws',
-            f'colcon build {colcon_build_args}',
-        ]
-        return self._execute_commands(commands)
+        logger.info(f'building workspace with args: {colcon_build_args}')
+        return self._execute_commands([f'colcon build {colcon_build_args}'])
 
     def _download_results(self):
         logger.info('downloading install/ on host')
@@ -156,6 +151,4 @@ class LXDClient(object):
 
     def shell(self):
         """Shell into the container."""
-        subprocess.run(['lxc', 'exec', self.container_name,
-                        '--cwd', '/ws',
-                        '--','bash'])
+        subprocess.run(['lxc', 'exec', self.container_name, '--','bash'])

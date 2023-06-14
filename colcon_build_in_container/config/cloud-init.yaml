@@ -2,6 +2,7 @@
 #cloud-config
 
 {% set archmap={'x86_64':'amd64', 'aarch64':'arm64', 'armv7l': 'armhf', 'riscv64': 'riscv64'} %}
+{% set distromap={'focal':'foxy', 'jammy': 'humble'} %}
 
 apt:
   sources:
@@ -22,3 +23,18 @@ packages:
   - python3-pip
   - python3-rosdep
   - python3-rosinstall
+
+write_files:
+  - content: |
+      cd /ws
+    path: /root/.profile
+    append: true
+    defer: true
+write_files:
+  - content: |
+      if [ -f /opt/ros/{{ distromap[v1.machine] }}/setup.bash ]; then
+        . /opt/ros/{{ distromap[v1.machine] }}/setup.bash
+      fi
+    path: /root/.bashrc
+    append: true
+    defer: true
