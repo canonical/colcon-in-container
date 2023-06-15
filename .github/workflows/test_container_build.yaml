@@ -41,8 +41,8 @@ jobs:
       - name: Colcon build in container
         run: |
           cd ros_ws
-          colcon build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
+          colcon --log-level=info build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: verify files
         run: |
           cd ros_ws
-          grep ${{ matrix.ros_version }} colcon-build-in-container/demo_nodes_cpp/share/demo_nodes_cpp/local_setup.sh
+          grep ${{ matrix.ros_version }} install_in_container/demo_nodes_cpp/share/demo_nodes_cpp/local_setup.sh
