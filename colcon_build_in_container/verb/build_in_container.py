@@ -33,7 +33,7 @@ ros_distro_choices = ['humble', 'foxy']
 
 
 class BuildInContainerVerb(VerbExtensionPoint):
-    """call a colcon build command inside a fresh container."""
+    """Call a colcon build command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
@@ -58,20 +58,19 @@ class BuildInContainerVerb(VerbExtensionPoint):
             default='',
             metavar='*',
             type=str.lstrip,
-            help='Pass arguments to the colcon build command',
+            help='Pass arguments to the colcon build command.',
         )
         parser.add_argument(
             '--debug',
             action='store_true',
-            help='Shell into the environment in case the build fails',
+            help='Shell into the environment in case the build fails.',
         )
         parser.add_argument(
             '--shell-after',
             action='store_true',
             help='Shell into the environment at the end of the build or if '
-                  'there is an error. This flag includes "--debug"',
+                  'there is an error. This flag includes "--debug".',
         )
-        add_log_level_argument(parser)
         add_packages_arguments(parser)
 
     def main(self, *, context):  # noqa: D102

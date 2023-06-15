@@ -50,10 +50,6 @@ class LXDClient(object):
         ubuntu_distro = get_ubuntu_distro(self.ros_distro)
 
         self.logger_container = logger.getChild('container')
-        # Handler to remove line breaks
-        handler = logging.StreamHandler()
-        handler.terminator = ''
-        self.logger_container.addHandler(handler)
 
         config = {
             'name': self.container_name,

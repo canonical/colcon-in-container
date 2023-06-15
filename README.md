@@ -21,7 +21,7 @@ colcon build-in-container
 
 Advanced usage:
 ```
-colcon build-in-container --log-level=info --ros-distro humble --colcon-build-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
+colcon --log-level=info build-in-container --ros-distro humble --colcon-build-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
 ```
 
 Usage help:
@@ -30,19 +30,16 @@ $ colcon build-in-container --help
 
 usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--paths [PATH [PATH ...]]]
 
-call a colcon command inside a fresh container.
+Call a colcon build command inside a fresh container.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --ros-distro ROS_DISTRO
                         ROS version, can also be set by the environment variable ROS_DISTRO.
   --colcon-build-args *
                         Pass arguments to the colcon build command
-  --debug               Shell into the environment at the end of the build or if there is an error
-
-Discovery arguments:
-  --paths [PATH [PATH ...]]
-                        The paths to check for a package. Use shell wildcards (e.g. `src/*`) to select all direct subdirectories (default: .)
+  --debug               Shell into the environment in case the build fails.
+  --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
 ```
 
 By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
