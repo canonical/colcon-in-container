@@ -10,7 +10,7 @@ colcon verb extension to build everything inside a container and transfert the r
 - Upload your workspace inside the container
 - Install all your rosdep dependencies (make sure to keep your `package.xml` updated!)
 - Build you workspace inside the container
-- Download the `install/` directory of the built workspace on your host under: `colcon-build-in-container/`
+- Download the `install/` directory of the built workspace on your host under: `install_in_container/`
 
 ## Usage
 
