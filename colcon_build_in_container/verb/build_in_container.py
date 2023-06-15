@@ -18,7 +18,6 @@ from os import getenv
 import sys
 
 from colcon_build_in_container.lxd import LXDClient
-from colcon_core.command import add_log_level_argument
 from colcon_core.logging import colcon_logger
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
@@ -51,7 +50,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
             default=ros_distro_env,
             required=not ros_distro_env,
             help='ROS version, can also be set by the environment variable '
-                  'ROS_DISTRO.'
+                 'ROS_DISTRO.'
         )
         parser.add_argument(
             '--colcon-build-args',
@@ -69,7 +68,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
             '--shell-after',
             action='store_true',
             help='Shell into the environment at the end of the build or if '
-                  'there is an error. This flag includes "--debug".',
+                 'there is an error. This flag includes "--debug".',
         )
         add_packages_arguments(parser)
 
@@ -94,7 +93,8 @@ class BuildInContainerVerb(VerbExtensionPoint):
                 continue
             lxd_client.upload_package(package.name, package.path)
 
-        if error_code := lxd_client.build(context.args.colcon_build_args) and context.args.debug:
+        if error_code := lxd_client.build(context.args.colcon_build_args) \
+                and context.args.debug:
             logger.error(f'Build failed with error code {error_code}.')
             logger.warn('Debug was selected, entering the container.')
             lxd_client.shell()

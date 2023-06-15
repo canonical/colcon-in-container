@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from functools import partial
-import logging
 import os
 from platform import system
 import shutil
@@ -27,6 +26,7 @@ from pylxd import Client, exceptions
 
 
 logger = colcon_logger.getChild(__name__)
+
 
 class LXDClient(object):
     """LXD client interacting with the LXD socket."""
@@ -64,14 +64,15 @@ class LXDClient(object):
         }
 
         config_directory = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'config')
+            os.path.dirname(os.path.realpath(__file__)), 'config')
         cloud_init_file = os.path.join(
             config_directory, 'cloud-init.yaml')
         with open(cloud_init_file, 'r') as f:
             config['config']['user.user-data'] = f'{f.read()}'
 
         if self.lxd_client.instances.exists(self.container_name):
-            previous_instance = self.lxd_client.instances.get(self.container_name)
+            previous_instance = self.lxd_client.instances.get(
+                self.container_name)
             if previous_instance.status == 'Running':
                 previous_instance.stop(wait=True)
             else:
@@ -81,7 +82,7 @@ class LXDClient(object):
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
         logger.info('Waiting for ROS 2 to be installed')
-        self._execute_command(["cloud-init", "status", "--wait"])
+        self._execute_command(['cloud-init', 'status', '--wait'])
 
     def __del__(self):  # noqa: D105
         if self.instance:
@@ -90,15 +91,15 @@ class LXDClient(object):
 
     def _execute_command(self, command):
         return self.instance.execute(
-            command, stdout_handler=self.logger_container.info, stderr_handler=self.logger_container.error,
-            cwd='/ws'
+            command, stdout_handler=self.logger_container.info,
+            stderr_handler=self.logger_container.error, cwd='/ws'
         )
 
     def _execute_commands(self, commands):
         commands_to_run = '#!/bin/bash\n'
         commands_to_run += '\n'.join(commands)
         self.instance.files.put('/tmp/script', commands_to_run)
-        return self._execute_command(['bash','-xe', '/tmp/script'])
+        return self._execute_command(['bash', '-xe', '/tmp/script'])
 
     def _call_rosdep(self):
         # initialize and call rosdep over our repository
@@ -107,7 +108,8 @@ class LXDClient(object):
             'rosdep init',
             'rosdep update',
             'export DEBIAN_FRONTEND=noninteractive',
-            f'rosdep install --from-paths /ws/src --ignore-src -y --rosdistro={self.ros_distro}',
+            'rosdep install --from-paths /ws/src --ignore-src -y '
+            f'--rosdistro={self.ros_distro}',
         ]
 
         return self._execute_commands(commands)
@@ -121,9 +123,11 @@ class LXDClient(object):
         if os.path.exists(self.host_install_folder):
             shutil.rmtree(self.host_install_folder, ignore_errors=True)
         try:
-            self.instance.files.recursive_get('/ws/install', self.host_install_folder)
+            self.instance.files.recursive_get('/ws/install',
+                                              self.host_install_folder)
         except exceptions.NotFound:
-            logger.warn('/ws/install was empty. Are you sure you built packages?')
+            logger.warn('/ws/install was empty. '
+                        'Are you sure you built packages?')
 
     def upload_package(self, package_name, package_path):
         """Upload package to container workspace."""
@@ -149,4 +153,4 @@ class LXDClient(object):
 
     def shell(self):
         """Shell into the container."""
-        subprocess.run(['lxc', 'exec', self.container_name, '--','bash'])
+        subprocess.run(['lxc', 'exec', self.container_name, '--', 'bash'])
