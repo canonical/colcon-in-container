@@ -31,5 +31,5 @@ jobs:
       - uses: colcon/ci@v1
       - name: Run mypy
         run: |
-          mypy --ignore-missing-imports .
+          python3 -m mypy --ignore-missing-imports .
 
