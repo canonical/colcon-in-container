@@ -145,7 +145,8 @@ class LXDClient(object):
         commands = [self._call_rosdep,
                     partial(self._build, colcon_build_args)]
         for command in commands:
-            if exit_code := command().exit_code:
+            exit_code = command().exit_code
+            if exit_code:
                 return exit_code
 
         self._download_results()

@@ -93,9 +93,9 @@ class BuildInContainerVerb(VerbExtensionPoint):
                 continue
             lxd_client.upload_package(package.name, package.path)
 
-        if error_code := lxd_client.build(context.args.colcon_build_args) \
-                and context.args.debug:
-            logger.error(f'Build failed with error code {error_code}.')
+        build_exit_code = lxd_client.build(context.args.colcon_build_args)
+        if build_exit_code and context.args.debug:
+            logger.error(f'Build failed with error code {build_exit_code}.')
             logger.warn('Debug was selected, entering the container.')
             lxd_client.shell()
         elif context.args.shell_after:
