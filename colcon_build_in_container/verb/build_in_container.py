@@ -60,12 +60,16 @@ class BuildInContainerVerb(VerbExtensionPoint):
             type=str.lstrip,
             help='Pass arguments to the colcon build command',
         )
-
         parser.add_argument(
             '--debug',
             action='store_true',
+            help='Shell into the environment in case the build fails',
+        )
+        parser.add_argument(
+            '--shell-after',
+            action='store_true',
             help='Shell into the environment at the end of the build or if '
-                  'there is an error',
+                  'there is an error. This flag includes "--debug"',
         )
         add_log_level_argument(parser)
         add_packages_arguments(parser)
@@ -91,10 +95,12 @@ class BuildInContainerVerb(VerbExtensionPoint):
                 continue
             lxd_client.upload_package(package.name, package.path)
 
-        lxd_client.build(context.args.colcon_build_args)
-
-        if context.args.debug:
-            logger.info(f'Debug was selected, entering the container.')
+        if error_code := lxd_client.build(context.args.colcon_build_args) and context.args.debug:
+            logger.error(f'Build failed with error code {error_code}.')
+            logger.warn('Debug was selected, entering the container.')
+            lxd_client.shell()
+        elif context.args.shell_after:
+            logger.info('Shell after was selected, entering the container.')
             lxd_client.shell()
 
         return 0

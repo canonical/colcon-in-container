@@ -100,7 +100,6 @@ class LXDClient(object):
 
     def _execute_commands(self, commands):
         commands_to_run = '#!/bin/bash\n'
-        commands_to_run += 'export DEBIAN_FRONTEND=noninteractive\n'
         commands_to_run += '\n'.join(commands)
         self.instance.files.put('/tmp/script', commands_to_run)
         return self._execute_command(['bash','-xe', '/tmp/script'])
@@ -111,6 +110,7 @@ class LXDClient(object):
         commands = [
             'rosdep init',
             'rosdep update',
+            'export DEBIAN_FRONTEND=noninteractive',
             f'rosdep install --from-paths /ws/src --ignore-src -y --rosdistro={self.ros_distro}',
         ]
 
@@ -145,11 +145,11 @@ class LXDClient(object):
         commands = [self._call_rosdep,
                     partial(self._build, colcon_build_args)]
         for command in commands:
-            ret = command()
-            if ret.exit_code:
-                return
+            if exit_code := command().exit_code:
+                return exit_code
 
         self._download_results()
+        return 0
 
     def shell(self):
         """Shell into the container."""
