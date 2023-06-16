@@ -100,14 +100,15 @@ class LXDClient(object):
         commands_to_run = '#!/bin/bash\n'
         commands_to_run += '\n'.join(commands)
         self.instance.files.put('/tmp/script', commands_to_run)
-        return self._execute_command(['bash', '-xe', '/tmp/script'])
+        return self._execute_command(['bash', '-xei', '/tmp/script'])
 
     def _call_rosdep(self):
         # initialize and call rosdep over our repository
-        logger.info('installing and calling rosdep')
+        logger.info('Initialising and calling rosdep')
         commands = [
             'rosdep init',
             'rosdep update',
+            # Avoid rosdep/apt interactive shell error message
             'export DEBIAN_FRONTEND=noninteractive',
             'rosdep install --from-paths /ws/src --ignore-src -y '
             f'--rosdistro={self.ros_distro}',
