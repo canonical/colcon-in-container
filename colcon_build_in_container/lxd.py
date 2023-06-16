@@ -117,7 +117,7 @@ class LXDClient(object):
 
     def _build(self, colcon_build_args):
         logger.info(f'building workspace with args: {colcon_build_args}')
-        return self._execute_commands(['ls /opt', 'echo $ROS_DISTRO', f'colcon build {colcon_build_args}'])
+        return self._execute_commands(['env', f'colcon build {colcon_build_args}'])
 
     def _download_results(self):
         logger.info('downloading install/ on host')
