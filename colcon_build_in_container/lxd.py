@@ -18,11 +18,13 @@ import os
 from platform import system
 import shutil
 import subprocess
+from typing import Any, Callable, Dict, List
 
 from colcon_build_in_container.helper \
     import get_ubuntu_distro, host_architecture
 from colcon_core.logging import colcon_logger
 from pylxd import Client, exceptions
+from pylxd.models.instance import _InstanceExecuteResult
 
 
 logger = colcon_logger.getChild(__name__)
@@ -51,7 +53,7 @@ class LXDClient(object):
 
         self.logger_container = logger.getChild('container')
 
-        config = {
+        config: Dict[str, Any] = {
             'name': self.container_name,
             'source': {
                 'type': 'image',
@@ -62,13 +64,12 @@ class LXDClient(object):
             'ephemeral': True,
             'config': {},
         }
-
         config_directory = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'config')
         cloud_init_file = os.path.join(
             config_directory, 'cloud-init.yaml')
         with open(cloud_init_file, 'r') as f:
-            config['config']['user.user-data'] = f'{f.read()}'
+            config['config']['user.user-data'] = f.read()
 
         if self.lxd_client.instances.exists(self.container_name):
             previous_instance = self.lxd_client.instances.get(
@@ -142,8 +143,9 @@ class LXDClient(object):
         Pull build-time dependencies, build the workspace and download the
         result build directory.
         """
-        commands = [self._call_rosdep,
-                    partial(self._build, colcon_build_args)]
+        commands: List[Callable[[], _InstanceExecuteResult]] = [
+            self._call_rosdep,
+            partial(self._build, colcon_build_args)]
         for command in commands:
             exit_code = command().exit_code
             if exit_code:
