@@ -93,7 +93,7 @@ class LXDClient(object):
     def _execute_command(self, command):
         return self.instance.execute(
             command, stdout_handler=self.logger_container.info,
-            stderr_handler=self.logger_container.error, cwd='/ws'
+            stderr_handler=self.logger_container.info, cwd='/ws'
         )
 
     def _execute_commands(self, commands):
@@ -117,7 +117,7 @@ class LXDClient(object):
 
     def _build(self, colcon_build_args):
         logger.info(f'building workspace with args: {colcon_build_args}')
-        return self._execute_commands([f'colcon build {colcon_build_args}'])
+        return self._execute_commands(['ls /opt', 'echo $ROS_DISTRO', f'colcon build {colcon_build_args}'])
 
     def _download_results(self):
         logger.info('downloading install/ on host')

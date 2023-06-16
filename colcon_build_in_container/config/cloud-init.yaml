@@ -32,8 +32,8 @@ write_files:
     defer: true
 write_files:
   - content: |
-      if [ -f /opt/ros/{{ distromap[v1.machine] }}/setup.bash ]; then
-        . /opt/ros/{{ distromap[v1.machine] }}/setup.bash
+      if [ -f /opt/ros/{{ distromap[v1.distro_release] }}/setup.bash ]; then
+        . /opt/ros/{{ distromap[v1.distro_release] }}/setup.bash
       fi
     path: /root/.bashrc
     append: true

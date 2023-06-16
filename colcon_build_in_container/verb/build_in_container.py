@@ -102,4 +102,4 @@ class BuildInContainerVerb(VerbExtensionPoint):
             logger.info('Shell after was selected, entering the container.')
             lxd_client.shell()
 
-        return 0
+        return build_exit_code
