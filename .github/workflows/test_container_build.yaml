@@ -45,9 +45,5 @@ jobs:
       - name: verify files
         run: |
           cd ros_ws
-          ls
-          ls install_in_container/
-          ls install_in_container/demo_nodes_cpp/
-          ls install_in_container/demo_nodes_cpp/share/
-          ls install_in_container/demo_nodes_cpp/share/demo_nodes_cpp/local_setup.sh
-          grep ${{ matrix.ros_version }} install_in_container/demo_nodes_cpp/share/demo_nodes_cpp/local_setup.sh
+          grep ${{ matrix.ros_version }} install_in_container/setup.sh
+          ls install_in_container/demo_nodes_cpp/lib/demo_nodes_cpp/talker
