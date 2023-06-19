@@ -81,7 +81,11 @@ class BuildInContainerVerb(VerbExtensionPoint):
                          'a valid ros-distro')
             sys.exit(1)
 
-        lxd_client = LXDClient(context.args.ros_distro)
+        try:
+            lxd_client = LXDClient(context.args.ros_distro)
+        except SystemError as e:
+            logger.error(f'Failed to start the LXD client: {e}')
+            return sys.exit(1)
 
         # copy packages into the container
         decorators = get_packages(context.args, recursive_categories=('run', ))

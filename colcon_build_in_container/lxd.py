@@ -30,21 +30,32 @@ from pylxd.models.instance import _InstanceExecuteResult
 logger = colcon_logger.getChild(__name__)
 
 
+def _is_lxd_installed():
+    return shutil.which('lxd') is not None
+
+
 class LXDClient(object):
     """LXD client interacting with the LXD socket."""
 
     def __init__(self, ros_distro):  # noqa: D107
         if system() != 'Linux':
-            raise Exception('LXDClient is only supported on Linux')
+            raise SystemError('LXDClient is only supported on Linux')
+
+        if not _is_lxd_installed():
+            raise SystemError('LXD is not installed. Please run '
+                              '`sudo snap install lxd`')
 
         try:
             self.lxd_client = Client()
         except exceptions.ClientConnectionFailed as e:
-            raise Exception(
+            raise SystemError(
                 'Failed to initialized LXD client. '
-                'Make sure LXD is installed (sudo snap install lxd) and '
-                f'initialised (lxd init --auto): {e}'
+                f'Make sure LXD is properly installed and running: {e}'
             )
+
+        if not self._is_lxd_initialised():
+            raise SystemError('LXD is not initialised. Please run '
+                              '`lxd init --auto')
 
         self.container_name = 'colcon-build-in-container'
         self.host_install_folder = 'install_in_container'
@@ -86,9 +97,13 @@ class LXDClient(object):
         self._execute_command(['cloud-init', 'status', '--wait'])
 
     def __del__(self):  # noqa: D105
-        if self.instance:
+        if hasattr(self, 'instance') and self.instance:
             if self.instance.status == 'Running':
                 self.instance.stop(wait=True)
+
+    def _is_lxd_initialised(self):
+        devices = self.lxd_client.profiles.get('default').devices
+        return bool(devices)
 
     def _execute_command(self, command):
         return self.instance.execute(
