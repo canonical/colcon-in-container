@@ -112,6 +112,10 @@ class LXDClient(object):
             'export DEBIAN_FRONTEND=noninteractive',
             'rosdep install --from-paths /ws/src --ignore-src -y '
             f'--rosdistro={self.ros_distro}',
+            '--dependency-types=build',
+            '--dependency-types=buildtool',
+            '--dependency-types=build_export',
+            '--dependency-types=buildtool_export',
         ]
 
         return self._execute_commands(commands)
