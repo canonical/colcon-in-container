@@ -28,7 +28,7 @@ from colcon_core.verb import VerbExtensionPoint
 
 logger = colcon_logger.getChild(__name__)
 
-ros_distro_choices = ['humble', 'foxy']
+ros_distro_choices = ['rolling', 'iron', 'humble', 'foxy']
 
 
 class BuildInContainerVerb(VerbExtensionPoint):

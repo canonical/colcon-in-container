@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04]
-        ros_version: [foxy, humble]
+        ros_version: [foxy, humble, iron, rolling]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout sources

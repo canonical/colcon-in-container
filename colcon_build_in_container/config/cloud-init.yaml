@@ -2,7 +2,6 @@
 #cloud-config
 
 {% set archmap={'x86_64':'amd64', 'aarch64':'arm64', 'armv7l': 'armhf', 'riscv64': 'riscv64'} %}
-{% set distromap={'focal':'foxy', 'jammy': 'humble'} %}
 
 apt:
   sources:
@@ -32,8 +31,8 @@ write_files:
     defer: true
 write_files:
   - content: |
-      if [ -f /opt/ros/{{ distromap[v1.distro_release] }}/setup.bash ]; then
-        . /opt/ros/{{ distromap[v1.distro_release] }}/setup.bash
+      if [ -f /opt/ros/{{ ros_version }}/setup.bash ]; then
+        . /opt/ros/{{ ros_version }}/setup.bash
       fi
     path: /root/.bashrc
     append: true
