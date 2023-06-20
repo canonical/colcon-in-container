@@ -132,7 +132,8 @@ class LXDClient(object):
             '--dependency-types=build '
             '--dependency-types=buildtool '
             '--dependency-types=build_export '
-            '--dependency-types=buildtool_export'
+            '--dependency-types=buildtool_export '
+            '--dependency-types=test'
         ]
 
         return self._execute_commands(commands)
