@@ -25,15 +25,10 @@ packages:
 
 write_files:
   - content: |
-      cd /ws
-    path: /root/.profile
-    append: true
-    defer: true
-write_files:
-  - content: |
       if [ -f /opt/ros/{{ ros_version }}/setup.bash ]; then
         . /opt/ros/{{ ros_version }}/setup.bash
       fi
+      cd /ws
     path: /root/.bashrc
     append: true
     defer: true
