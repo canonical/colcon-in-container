@@ -80,9 +80,7 @@ class LXDClient(object):
         cloud_init_file = os.path.join(
             config_directory, 'cloud-init.yaml')
         with open(cloud_init_file, 'r') as f:
-            config['config']['user.user-data'] = f.read().replace(
-                '{{ ros_version }}',
-                f'{self.ros_distro}')
+            config['config']['user.user-data'] = f.read()
 
         if self.lxd_client.instances.exists(self.container_name):
             previous_instance = self.lxd_client.instances.get(

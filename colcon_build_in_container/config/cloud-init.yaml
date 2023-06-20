@@ -25,8 +25,8 @@ packages:
 
 write_files:
   - content: |
-      if [ -f /opt/ros/{{ ros_version }}/setup.bash ]; then
-        . /opt/ros/{{ ros_version }}/setup.bash
+      if [ -f /opt/ros/*/setup.bash ]; then
+        . /opt/ros/*/setup.bash
       fi
       cd /ws
     path: /root/.bashrc
