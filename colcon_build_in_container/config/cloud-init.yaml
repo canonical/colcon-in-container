@@ -1,0 +1,34 @@
+## template: jinja
+#cloud-config
+
+{% set archmap={'x86_64':'amd64', 'aarch64':'arm64', 'armv7l': 'armhf', 'riscv64': 'riscv64'} %}
+
+apt:
+  sources:
+    ros2:
+      source: "deb [arch={{ archmap[v1.machine] }}] http://repo.ros2.org/ubuntu/main {{ v1.distro_release }} main"
+      keyid: C1CF 6E31 E6BA DE88 68B1 72B4 F42E D6FB AB17 C654
+package_update: true
+package_upgrade: true
+
+packages:
+  - build-essential
+  - cmake
+  - curl
+  - git
+  - lsb-release
+  - python3
+  - python3-colcon-common-extensions
+  - python3-pip
+  - python3-rosdep
+  - python3-rosinstall
+
+write_files:
+  - content: |
+      if [ -f /opt/ros/*/setup.bash ]; then
+        . /opt/ros/*/setup.bash
+      fi
+      cd /ws
+    path: /root/.bashrc
+    append: true
+    defer: true
