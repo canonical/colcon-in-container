@@ -17,7 +17,7 @@
 from os import getenv
 import sys
 
-from colcon_build_in_container.lxd import LXDClient
+from colcon_in_container.lxd import LXDClient
 from colcon_core.logging import colcon_logger
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments

@@ -1,1 +1,1 @@
-include colcon_build_in_container/config/*
+include colcon_in_container/config/*

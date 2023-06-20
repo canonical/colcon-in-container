@@ -20,7 +20,7 @@ import shutil
 import subprocess
 from typing import Any, Callable, Dict, List
 
-from colcon_build_in_container.helper \
+from colcon_in_container.helper \
     import get_ubuntu_distro, host_architecture
 from colcon_core.logging import colcon_logger
 from pylxd import Client, exceptions
