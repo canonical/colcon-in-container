@@ -14,21 +14,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from os import getenv
+from functools import partial
 import sys
+from typing import Callable, List
 
-from colcon_in_container.lxd import LXDClient
 from colcon_core.logging import colcon_logger
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
 from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
+from colcon_in_container.providers.lxd import LXDClient
+from colcon_in_container.verb._parser import \
+    add_container_argument, add_ros_distro_argument,\
+    verify_ros_distro_in_parsed_args
 
 
 logger = colcon_logger.getChild(__name__)
-
-ros_distro_choices = ['rolling', 'iron', 'humble', 'foxy']
 
 
 class BuildInContainerVerb(VerbExtensionPoint):
@@ -37,21 +39,12 @@ class BuildInContainerVerb(VerbExtensionPoint):
     def __init__(self):  # noqa: D107
         super().__init__()
         satisfies_version(VerbExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
+        self.host_install_folder = 'install_in_container'
 
     def add_arguments(self, *, parser):  # noqa: D102
 
-        ros_distro_env = getenv('ROS_DISTRO')
+        add_ros_distro_argument(parser)
 
-        parser.add_argument(
-            '--ros-distro',
-            metavar='ROS_DISTRO',
-            type=str,
-            choices=ros_distro_choices,
-            default=ros_distro_env,
-            required=not ros_distro_env,
-            help='ROS version, can also be set by the environment variable '
-                 'ROS_DISTRO.'
-        )
         parser.add_argument(
             '--colcon-build-args',
             default='',
@@ -59,30 +52,64 @@ class BuildInContainerVerb(VerbExtensionPoint):
             type=str.lstrip,
             help='Pass arguments to the colcon build command.',
         )
-        parser.add_argument(
-            '--debug',
-            action='store_true',
-            help='Shell into the environment in case the build fails.',
-        )
-        parser.add_argument(
-            '--shell-after',
-            action='store_true',
-            help='Shell into the environment at the end of the build or if '
-                 'there is an error. This flag includes "--debug".',
-        )
+
+        add_container_argument(parser)
         add_packages_arguments(parser)
+
+    def _call_rosdep(self, ros_distro):
+        # initialize and call rosdep over our repository
+        logger.info('Initialising and calling rosdep')
+        commands = [
+            'rosdep init',
+            'rosdep update',
+            # Avoid rosdep/apt interactive shell error message
+            'export DEBIAN_FRONTEND=noninteractive',
+            'rosdep install --from-paths /ws/src --ignore-src -y '
+            f'--rosdistro={ros_distro} '
+            '--dependency-types=build '
+            '--dependency-types=buildtool '
+            '--dependency-types=build_export '
+            '--dependency-types=buildtool_export '
+            '--dependency-types=test'
+        ]
+
+        return self.provider.execute_commands(commands)
+
+    def _colcon_build(self, colcon_build_args):
+        logger.info(f'building workspace with args: {colcon_build_args}')
+        return self.provider.execute_commands([
+            f'colcon --log-level={logger.getEffectiveLevel()} '
+            f'build {colcon_build_args}'])
+
+    def _build(self, args):
+        """Build the workspace.
+
+        Pull build-time dependencies, build the workspace and download the
+        result build directory.
+        """
+        commands: List[Callable[[], int]] = [
+            partial(self._call_rosdep, args.ros_distro),
+            partial(self._colcon_build, args.colcon_build_args)]
+        for command in commands:
+            exit_code = command()
+            if exit_code:
+                return exit_code
+
+        try:
+            self.provider.download_result(
+                result_path_in_container='/ws/install',
+                result_path_on_host=self.host_install_folder)
+        except FileNotFoundError:
+            return 1
+        return 0
 
     def main(self, *, context):  # noqa: D102
 
-        if context.args.ros_distro not in ros_distro_choices:
-            logger.error(f'The ROS_DISTRO={context.args.ros_distro} '
-                         'environment variable is not a viable '
-                         '--ros-distro argument. See --ros-distro to set '
-                         'a valid ros-distro')
+        if not verify_ros_distro_in_parsed_args(context.args):
             sys.exit(1)
 
         try:
-            lxd_client = LXDClient(context.args.ros_distro)
+            self.provider = LXDClient(context.args.ros_distro)
         except SystemError as e:
             logger.error(f'Failed to start the LXD client: {e}')
             return sys.exit(1)
@@ -95,15 +122,15 @@ class BuildInContainerVerb(VerbExtensionPoint):
             package = decorator.descriptor
             if not decorator.selected:
                 continue
-            lxd_client.upload_package(package.name, package.path)
+            self.provider.upload_package(package.path)
 
-        build_exit_code = lxd_client.build(context.args.colcon_build_args)
+        build_exit_code = self._build(context.args)
         if build_exit_code and context.args.debug:
             logger.error(f'Build failed with error code {build_exit_code}.')
             logger.warn('Debug was selected, entering the container.')
-            lxd_client.shell()
+            self.provider.shell()
         elif context.args.shell_after:
             logger.info('Shell after was selected, entering the container.')
-            lxd_client.shell()
+            self.provider.shell()
 
         return build_exit_code
