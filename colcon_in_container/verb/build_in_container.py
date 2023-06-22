@@ -109,7 +109,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
             self.provider = ProviderFactory.make(context.args.provider,
                                                  context.args.ros_distro)
         except SystemError as e:
-            logger.error(f'Failed to start the LXD client: {e}')
+            logger.error(f'Failed to start the provider client: {e}')
             return sys.exit(1)
 
         # copy packages into the container
