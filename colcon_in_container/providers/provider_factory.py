@@ -39,12 +39,12 @@ class ProviderFactory(object):
         cls._providers[name] = provider
 
     @classmethod
-    def make(cls, name):
+    def make(cls, name, ros_distro):
         """Make a provider based on the name."""
         provider = cls._providers.get(name)
         if not provider:
             raise ValueError(name)
-        return provider
+        return provider(ros_distro)
 
 
 # Register all the providers

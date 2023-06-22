@@ -60,3 +60,11 @@ def add_container_argument(parser):
         help='Shell into the environment at the end of the build or if '
              'there is an error. This flag includes "--debug".',
     )
+
+    parser.add_argument(
+        '--provider',
+        type=str,
+        choices=['lxd'],
+        default='lxd',
+        help='Environement provider.'
+    )
