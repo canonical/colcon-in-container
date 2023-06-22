@@ -19,14 +19,11 @@ import shutil
 import subprocess
 from typing import Any, Dict
 
-from colcon_core.logging import colcon_logger
+from colcon_in_container.logging import logger
 from colcon_in_container.providers._helper \
     import host_architecture
 from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions
-
-
-logger = colcon_logger.getChild(__name__)
 
 
 def _is_lxd_installed():

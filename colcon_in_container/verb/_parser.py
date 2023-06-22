@@ -15,10 +15,8 @@
 
 from os import getenv
 
-from colcon_core.logging import colcon_logger
+from colcon_in_container.logging import logger
 
-
-logger = colcon_logger.getChild(__name__)
 
 _ros_distro_choices = ['rolling', 'iron', 'humble', 'foxy']
 

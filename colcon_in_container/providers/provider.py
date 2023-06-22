@@ -17,11 +17,8 @@ from abc import ABC, abstractmethod
 import os
 import shutil
 
-from colcon_core.logging import colcon_logger
+from colcon_in_container.logging import logger
 from colcon_in_container.providers._helper import get_ubuntu_distro
-
-
-logger = colcon_logger.getChild(__name__)
 
 
 class Provider(ABC):

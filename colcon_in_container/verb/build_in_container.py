@@ -18,19 +18,16 @@ from functools import partial
 import sys
 from typing import Callable, List
 
-from colcon_core.logging import colcon_logger
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
 from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
+from colcon_in_container.logging import logger
 from colcon_in_container.providers.lxd import LXDClient
 from colcon_in_container.verb._parser import \
     add_container_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
-
-
-logger = colcon_logger.getChild(__name__)
 
 
 class BuildInContainerVerb(VerbExtensionPoint):
