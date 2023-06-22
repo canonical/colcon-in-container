@@ -24,7 +24,7 @@ from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
 from colcon_in_container.logging import logger
-from colcon_in_container.providers.lxd import LXDClient
+from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
     add_container_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
@@ -106,7 +106,8 @@ class BuildInContainerVerb(VerbExtensionPoint):
             sys.exit(1)
 
         try:
-            self.provider = LXDClient(context.args.ros_distro)
+            self.provider = \
+                ProviderFactory.make('lxd')(context.args.ros_distro)
         except SystemError as e:
             logger.error(f'Failed to start the LXD client: {e}')
             return sys.exit(1)
