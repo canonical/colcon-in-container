@@ -18,8 +18,7 @@ from platform import processor
 
 _ros2_ubuntu_distro = {'rolling': 'jammy',
                        'iron': 'jammy',
-                       'humble': 'jammy',
-                       'foxy': 'focal'}
+                       'humble': 'jammy'}
 
 
 def get_ubuntu_distro(ros_distro):
