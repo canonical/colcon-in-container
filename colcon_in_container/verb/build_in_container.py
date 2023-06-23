@@ -24,6 +24,7 @@ from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
 from colcon_in_container.logging import logger
+from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument,\
@@ -96,7 +97,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
             self.provider.download_result(
                 result_path_in_instance='/ws/install',
                 result_path_on_host=self.host_install_folder)
-        except FileNotFoundError:
+        except provider_exceptions.FileNotFoundInInstanceError:
             return 1
         return 0
 
@@ -105,12 +106,8 @@ class BuildInContainerVerb(VerbExtensionPoint):
         if not verify_ros_distro_in_parsed_args(context.args):
             sys.exit(1)
 
-        try:
-            self.provider = ProviderFactory.create(context.args.provider,
-                                                   context.args.ros_distro)
-        except SystemError as e:
-            logger.error(f'Failed to start the provider client: {e}')
-            return sys.exit(1)
+        self.provider = ProviderFactory.create(context.args.provider,
+                                               context.args.ros_distro)
 
         # copy packages into the instance
         decorators = get_packages(context.args, recursive_categories=('run', ))

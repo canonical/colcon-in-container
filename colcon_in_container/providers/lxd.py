@@ -20,10 +20,11 @@ import subprocess
 from typing import Any, Dict
 
 from colcon_in_container.logging import logger
+from colcon_in_container.providers import exceptions
 from colcon_in_container.providers._helper \
     import host_architecture
 from colcon_in_container.providers.provider import Provider
-from pylxd import Client, exceptions
+from pylxd import Client, exceptions as pylxd_exceptions
 
 
 def _is_lxd_installed():
@@ -36,23 +37,24 @@ class LXDClient(Provider):
     def __init__(self, ros_distro):  # noqa: D107
         super().__init__(ros_distro)
         if system() != 'Linux':
-            raise SystemError('LXDClient is only supported on Linux')
+            raise exceptions.ProviderDoesNotSupportHostOSError(
+                'LXDClient is only supported on Linux')
 
         if not _is_lxd_installed():
-            raise SystemError('LXD is not installed. Please run '
-                              '`sudo snap install lxd`')
+            raise exceptions.ProviderNotInstalledOnHostError(
+                'LXD is not installed. Please run `sudo snap install lxd`')
 
         try:
             self.lxd_client = Client()
-        except exceptions.ClientConnectionFailed as e:
-            raise SystemError(
+        except pylxd_exceptions.ClientConnectionFailed as e:
+            raise exceptions.ProviderClientError(
                 'Failed to initialized LXD client. '
                 f'Make sure LXD is properly installed and running: {e}'
             )
 
         if not self._is_lxd_initialised():
-            raise SystemError('LXD is not initialised. Please run '
-                              '`lxd init --auto')
+            raise exceptions.ProviderNotConfiguredError(
+                'LXD is not initialised. Please run `lxd init --auto`')
 
         config: Dict[str, Any] = {
             'name': self.instance_name,
@@ -108,8 +110,8 @@ class LXDClient(Provider):
         try:
             self.instance.files.recursive_get(instance_path,
                                               host_path)
-        except exceptions.NotFound:
-            raise FileNotFoundError
+        except pylxd_exceptions.NotFound:
+            raise exceptions.FileNotFoundInInstanceError(instance_path)
 
     def _write_in_instance(self, *, instance_file_path, lines):
         """Copy data from the instance to the host."""

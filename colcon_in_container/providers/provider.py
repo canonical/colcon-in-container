@@ -18,6 +18,7 @@ import os
 import shutil
 
 from colcon_in_container.logging import logger
+from colcon_in_container.providers import exceptions
 from colcon_in_container.providers._helper import get_ubuntu_distro
 
 
@@ -68,10 +69,11 @@ class Provider(ABC):
                 instance_path=result_path_in_instance,
                 host_path=result_path_on_host
             )
-        except FileNotFoundError as e:
-            logger.warn(f'{result_path_in_instance} was empty. '
-                        'Are you sure you executed the right command?')
-            raise e
+        except FileNotFoundError:
+            logger.error(f'{result_path_in_instance} was empty. '
+                         'Are you sure you executed the right command?')
+            raise exceptions.FileNotFoundInInstanceError(
+                result_path_in_instance)
 
     @abstractmethod
     def _copy_from_host_to_instance(self, *, host_path, instance_path):

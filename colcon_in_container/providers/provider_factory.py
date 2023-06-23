@@ -16,6 +16,7 @@
 
 from typing import Dict
 
+from colcon_in_container.providers import exceptions
 from colcon_in_container.providers.lxd import LXDClient
 from colcon_in_container.providers.provider import Provider
 
@@ -42,7 +43,7 @@ class ProviderFactory(object):
         """Make a provider based on the name."""
         provider = cls._providers.get(name)
         if not provider:
-            raise ValueError(name)
+            raise exceptions.ProviderNotRegisteredError(name)
         return provider(ros_distro)  # type: ignore
 
 
