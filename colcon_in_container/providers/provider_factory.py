@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from functools import partial
 from typing import Dict
 
 from colcon_in_container.providers.lxd import LXDClient
@@ -25,7 +24,7 @@ class ProviderFactory(object):
     """Provider factory singleton to make providers."""
 
     _instance = None
-    _providers: Dict[str, partial[Provider]] = {}
+    _providers: Dict[str, Provider] = {}
 
     def __new__(cls):
         """Singleton creation."""
@@ -34,7 +33,7 @@ class ProviderFactory(object):
         return cls._instance
 
     @classmethod
-    def register(cls, name, provider: partial[Provider]):
+    def register(cls, name, provider):
         """Register a provider by its name."""
         cls._providers[name] = provider
 
@@ -44,8 +43,8 @@ class ProviderFactory(object):
         provider = cls._providers.get(name)
         if not provider:
             raise ValueError(name)
-        return provider(ros_distro)
+        return provider(ros_distro)  # type: ignore
 
 
 # Register all the providers
-ProviderFactory.register('lxd', partial(LXDClient))
+ProviderFactory.register('lxd', LXDClient)
