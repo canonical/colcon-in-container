@@ -26,7 +26,7 @@ from colcon_core.verb import VerbExtensionPoint
 from colcon_in_container.logging import logger
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_container_argument, add_ros_distro_argument,\
+    add_instance_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
 
 
@@ -50,7 +50,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
             help='Pass arguments to the colcon build command.',
         )
 
-        add_container_argument(parser)
+        add_instance_argument(parser)
         add_packages_arguments(parser)
 
     def _call_rosdep(self, ros_distro):
@@ -94,7 +94,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
 
         try:
             self.provider.download_result(
-                result_path_in_container='/ws/install',
+                result_path_in_instance='/ws/install',
                 result_path_on_host=self.host_install_folder)
         except FileNotFoundError:
             return 1
@@ -112,10 +112,10 @@ class BuildInContainerVerb(VerbExtensionPoint):
             logger.error(f'Failed to start the provider client: {e}')
             return sys.exit(1)
 
-        # copy packages into the container
+        # copy packages into the instance
         decorators = get_packages(context.args, recursive_categories=('run', ))
         logger.info(f'Discovered {len(decorators)}, '
-                    'uploading them in the container')
+                    'uploading them in the instance')
         for decorator in decorators:
             package = decorator.descriptor
             if not decorator.selected:
@@ -125,10 +125,10 @@ class BuildInContainerVerb(VerbExtensionPoint):
         build_exit_code = self._build(context.args)
         if build_exit_code and context.args.debug:
             logger.error(f'Build failed with error code {build_exit_code}.')
-            logger.warn('Debug was selected, entering the container.')
+            logger.warn('Debug was selected, entering the instance.')
             self.provider.shell()
         elif context.args.shell_after:
-            logger.info('Shell after was selected, entering the container.')
+            logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
 
         return build_exit_code

@@ -55,7 +55,7 @@ class LXDClient(Provider):
                               '`lxd init --auto')
 
         config: Dict[str, Any] = {
-            'name': self.container_name,
+            'name': self.instance_name,
             'source': {
                 'type': 'image',
                 'protocol': 'simplestreams',
@@ -73,9 +73,9 @@ class LXDClient(Provider):
         with open(cloud_init_file, 'r') as f:
             config['config']['user.user-data'] = f.read()
 
-        if self.lxd_client.instances.exists(self.container_name):
+        if self.lxd_client.instances.exists(self.instance_name):
             previous_instance = self.lxd_client.instances.get(
-                self.container_name)
+                self.instance_name)
             if previous_instance.status == 'Running':
                 previous_instance.stop(wait=True)
             else:
@@ -97,28 +97,28 @@ class LXDClient(Provider):
         return bool(devices)
 
     def execute_command(self, command):
-        """Execute the given command inside the container."""
+        """Execute the given command inside the instance."""
         return self.instance.execute(
-            command, stdout_handler=self.logger_container.info,
-            stderr_handler=self.logger_container.info, cwd='/ws'
+            command, stdout_handler=self.logger_instance.info,
+            stderr_handler=self.logger_instance.info, cwd='/ws'
         ).exit_code
 
-    def _copy_from_container_to_host(self, *, container_path, host_path):
-        """Copy data from the container to the host."""
+    def _copy_from_instance_to_host(self, *, instance_path, host_path):
+        """Copy data from the instance to the host."""
         try:
-            self.instance.files.recursive_get(container_path,
+            self.instance.files.recursive_get(instance_path,
                                               host_path)
         except exceptions.NotFound:
             raise FileNotFoundError
 
-    def _write_in_container(self, *, container_file_path, lines):
-        """Copy data from the container to the host."""
-        self.instance.files.put(container_file_path, lines)
+    def _write_in_instance(self, *, instance_file_path, lines):
+        """Copy data from the instance to the host."""
+        self.instance.files.put(instance_file_path, lines)
 
-    def _copy_from_host_to_container(self, *, host_path, container_path):
-        """Copy data from the container to the host."""
-        self.instance.files.recursive_put(host_path, container_path)
+    def _copy_from_host_to_instance(self, *, host_path, instance_path):
+        """Copy data from the instance to the host."""
+        self.instance.files.recursive_put(host_path, instance_path)
 
     def shell(self):
-        """Shell into the container."""
-        subprocess.run(['lxc', 'exec', self.container_name, '--', 'bash'])
+        """Shell into the instance."""
+        subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])

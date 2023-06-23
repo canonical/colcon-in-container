@@ -47,7 +47,7 @@ def verify_ros_distro_in_parsed_args(args):
     return True
 
 
-def add_container_argument(parser):
+def add_instance_argument(parser):
     """Add the --debug and --shell-after argument to the parser."""
     parser.add_argument(
         '--debug',
