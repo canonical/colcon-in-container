@@ -8,6 +8,7 @@ http
 lxd
 noqa
 pragma
+ros
 rosdep
 stderr
 stdout
