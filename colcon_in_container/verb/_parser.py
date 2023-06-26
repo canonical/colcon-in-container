@@ -48,7 +48,7 @@ def verify_ros_distro_in_parsed_args(args):
 
 
 def add_instance_argument(parser):
-    """Add the --debug and --shell-after argument to the parser."""
+    """Add the instance specific arguments to the parser."""
     parser.add_argument(
         '--debug',
         action='store_true',
