@@ -51,7 +51,7 @@ jobs:
       - name: Colcon test in container
         run: |
           cd ros_ws
-          colcon --log-level=info test-in-container --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --abort-on-error --return-code-on-test-failure"
+          colcon --log-level=info test-in-container --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
       - name: Colcon test in container verify files
         run: |
           cd ros_ws
