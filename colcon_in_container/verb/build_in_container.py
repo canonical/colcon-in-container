@@ -37,6 +37,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
     def __init__(self):  # noqa: D107
         super().__init__()
         satisfies_version(VerbExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
+        self.host_build_folder = 'build_in_container'
         self.host_install_folder = 'install_in_container'
 
     def add_arguments(self, *, parser):  # noqa: D102
@@ -97,6 +98,9 @@ class BuildInContainerVerb(VerbExtensionPoint):
             self.provider.download_result(
                 result_path_in_instance='/ws/install',
                 result_path_on_host=self.host_install_folder)
+            self.provider.download_result(
+                result_path_in_instance='/ws/build',
+                result_path_on_host=self.host_build_folder)
         except provider_exceptions.FileNotFoundInInstanceError:
             return 1
         return 0
