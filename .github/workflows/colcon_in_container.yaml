@@ -42,8 +42,9 @@ jobs:
         run: |
           cd ros_ws
           colcon --log-level=info build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
-      - name: verify files
+      - name: Colcon build in container verify files
         run: |
           cd ros_ws
           grep ${{ matrix.ros_version }} install_in_container/setup.sh
+          ls build_in_container/demo_nodes_cpp/lib/Makefile
           ls install_in_container/demo_nodes_cpp/lib/demo_nodes_cpp/talker
