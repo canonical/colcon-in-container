@@ -27,6 +27,15 @@ class FileNotFoundInInstanceError(Exception):
             f'File {file_name} is not available inside the instance')
 
 
+class FileNotFoundInHostError(Exception):
+    """Exception raised when the file does not existing on the host."""
+
+    def __init__(self, file_name):
+        """Message for a file not found."""
+        super().__init__(
+            f'File {file_name} is not available on host')
+
+
 class ProviderDoesNotSupportHostOSError(Exception):
     """Exception raised when the provider is not supported on the host."""
 
