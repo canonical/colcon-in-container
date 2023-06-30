@@ -70,7 +70,8 @@ class TestInContainerVerb(VerbExtensionPoint):
         result test directories.
         """
         commands: List[Callable[[], int]] = [
-            partial(call_rosdep, self.provider, args.ros_distro, ['exec', 'test']),
+            partial(call_rosdep, self.provider, args.ros_distro,
+                    ['exec', 'test']),
             partial(self._colcon_test, args.colcon_test_args)]
         for command in commands:
             exit_code = command()
