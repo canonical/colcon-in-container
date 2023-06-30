@@ -46,7 +46,7 @@ jobs:
         run: |
           cd ros_ws
           grep ${{ matrix.ros_version }} install_in_container/setup.sh
-          ls build_in_container/demo_nodes_cpp/lib/Makefile
+          ls build_in_container/demo_nodes_cpp/Makefile
           ls install_in_container/demo_nodes_cpp/lib/demo_nodes_cpp/talker
       - name: Colcon test in container
         run: |
