@@ -29,6 +29,7 @@ from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
+from colcon_in_container.verb._rosdep import call_rosdep
 
 
 class BuildInContainerVerb(VerbExtensionPoint):
@@ -55,25 +56,6 @@ class BuildInContainerVerb(VerbExtensionPoint):
         add_instance_argument(parser)
         add_packages_arguments(parser)
 
-    def _call_rosdep(self, ros_distro):
-        # initialize and call rosdep over our repository
-        logger.info('Initialising and calling rosdep')
-        commands = [
-            'rosdep init',
-            'rosdep update',
-            # Avoid rosdep/apt interactive shell error message
-            'export DEBIAN_FRONTEND=noninteractive',
-            'rosdep install --from-paths /ws/src --ignore-src -y '
-            f'--rosdistro={ros_distro} '
-            '--dependency-types=build '
-            '--dependency-types=buildtool '
-            '--dependency-types=build_export '
-            '--dependency-types=buildtool_export '
-            '--dependency-types=test'
-        ]
-
-        return self.provider.execute_commands(commands)
-
     def _colcon_build(self, colcon_build_args):
         logger.info(f'building workspace with args: {colcon_build_args}')
         return self.provider.execute_commands([
@@ -87,7 +69,12 @@ class BuildInContainerVerb(VerbExtensionPoint):
         result build directory.
         """
         commands: List[Callable[[], int]] = [
-            partial(self._call_rosdep, args.ros_distro),
+            partial(call_rosdep, self.provider, args.ros_distro,
+                    ['build',
+                     'buildtool',
+                     'build_export',
+                     'buildtool_export',
+                     'test']),
             partial(self._colcon_build, args.colcon_build_args)]
         for command in commands:
             exit_code = command()

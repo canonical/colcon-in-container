@@ -5,6 +5,7 @@ container
 containerised
 distro
 http
+init
 lxd
 noqa
 pragma
