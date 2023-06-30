@@ -48,3 +48,11 @@ jobs:
           grep ${{ matrix.ros_version }} install_in_container/setup.sh
           ls build_in_container/demo_nodes_cpp/lib/Makefile
           ls install_in_container/demo_nodes_cpp/lib/demo_nodes_cpp/talker
+      - name: Colcon test in container
+        run: |
+          cd ros_ws
+          colcon --log-level=info test-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp"
+      - name: Colcon test in container verify files
+        run: |
+          cd ros_ws
+          grep "Hostname=\"colcon-build-in-container\"" test_results_in_container/demo_nodes_cpp/Testing/*/Test.xml
