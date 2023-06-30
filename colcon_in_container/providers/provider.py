@@ -26,7 +26,7 @@ class Provider(ABC):
     """Provider client."""
 
     def __init__(self, ros_distro):  # noqa: D107
-        self.instance_name = 'colcon-build-in-container'
+        self.instance_name = 'colcon-in-container'
         self.ros_distro = ros_distro
         self.ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.logger_instance = logger.getChild('instance')
