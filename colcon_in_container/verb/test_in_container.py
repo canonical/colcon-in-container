@@ -33,7 +33,7 @@ from colcon_in_container.verb._rosdep import call_rosdep
 
 
 class TestInContainerVerb(VerbExtensionPoint):
-    """Call a colcon build command inside a fresh container."""
+    """Call a colcon test command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
@@ -51,7 +51,8 @@ class TestInContainerVerb(VerbExtensionPoint):
             default='',
             metavar='*',
             type=str.lstrip,
-            help='Pass arguments to the colcon test command.',
+            help='Pass arguments to the colcon test command. '
+            'Arguments matching other options must be prefixed by a space.',
         )
 
         add_instance_argument(parser)

@@ -50,7 +50,8 @@ class BuildInContainerVerb(VerbExtensionPoint):
             default='',
             metavar='*',
             type=str.lstrip,
-            help='Pass arguments to the colcon build command.',
+            help='Pass arguments to the colcon build command.'
+            'Arguments matching other options must be prefixed by a space.',
         )
 
         add_instance_argument(parser)
