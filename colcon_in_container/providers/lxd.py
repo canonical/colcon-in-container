@@ -17,6 +17,7 @@ import json
 import os
 from platform import system
 import shutil
+import stat
 import subprocess
 from typing import Any, Dict
 
@@ -127,6 +128,41 @@ class LXDClient(Provider):
                 with open(fd, 'wb') as f:
                     f.write(response.content)
 
+    def _recursive_put(self, local_path, remote_path):
+        norm_src = os.path.normpath(local_path)
+        if not os.path.isdir(norm_src):
+            raise NotADirectoryError('src parameter must be a directory')
+        idx = len(norm_src)
+        dst_items = set()
+        for path, dirname, files in os.walk(norm_src):
+            dst_path = os.path.normpath(
+                os.path.join(remote_path, path[idx:].lstrip(os.path.sep))
+            )
+            # create directory or symbolic link
+            # (depending on what's there)
+            if path not in dst_items:
+                dst_items.add(path)
+                unix_permissions = oct(os.stat(path).st_mode)[-3:]
+                headers = self.instance.files._resolve_headers(
+                    mode=unix_permissions)
+                # determine what the file is:
+                # a directory or a symbolic link
+                fmode = os.stat(path).st_mode
+                if stat.S_ISLNK(fmode):
+                    headers['X-LXD-type'] = 'symlink'
+                else:
+                    headers['X-LXD-type'] = 'directory'
+                self.instance.files._endpoint.post(params={'path': dst_path},
+                                                   headers=headers)
+            # copy files
+            for f in files:
+                src_file = os.path.join(path, f)
+                with open(src_file, 'rb') as fp:
+                    filepath = os.path.join(dst_path, f)
+                    unix_permissions = oct(os.stat(src_file).st_mode)[-3:]
+                    self.instance.files.put(filepath, fp.read(),
+                                            mode=unix_permissions)
+
     def _copy_from_instance_to_host(self, *, instance_path, host_path):
         """Copy data from the instance to the host."""
         try:
@@ -140,7 +176,7 @@ class LXDClient(Provider):
 
     def _copy_from_host_to_instance(self, *, host_path, instance_path):
         """Copy data from the instance to the host."""
-        self.instance.files.recursive_put(host_path, instance_path)
+        self._recursive_put(host_path, instance_path)
 
     def shell(self):
         """Shell into the instance."""
