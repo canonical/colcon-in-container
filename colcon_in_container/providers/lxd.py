@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import os
 from platform import system
 import shutil
@@ -105,11 +106,31 @@ class LXDClient(Provider):
             stderr_handler=self.logger_instance.info, cwd='/ws'
         ).exit_code
 
+    def _recursive_get(self, remote_path, local_path):
+        response = self.instance.files._endpoint.get(
+            params={'path': remote_path}, is_api=False)
+
+        if 'X-LXD-type' in response.headers:
+            unix_permissions = int(response.headers['X-LXD-mode'], 8)
+            if response.headers['X-LXD-type'] == 'directory':
+                os.mkdir(local_path, unix_permissions)
+                content = json.loads(response.content)
+                if 'metadata' in content and content['metadata']:
+                    for file in content['metadata']:
+                        self._recursive_get(
+                            os.path.join(remote_path, file),
+                            os.path.join(local_path, file),
+                        )
+            elif response.headers['X-LXD-type'] == 'file':
+                fd = os.open(local_path, os.O_CREAT | os.O_WRONLY,
+                             mode=unix_permissions)
+                with open(fd, 'wb') as f:
+                    f.write(response.content)
+
     def _copy_from_instance_to_host(self, *, instance_path, host_path):
         """Copy data from the instance to the host."""
         try:
-            self.instance.files.recursive_get(instance_path,
-                                              host_path)
+            self._recursive_get(instance_path, host_path)
         except pylxd_exceptions.NotFound:
             raise exceptions.FileNotFoundInInstanceError(instance_path)
 
