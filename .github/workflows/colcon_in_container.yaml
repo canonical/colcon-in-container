@@ -55,4 +55,4 @@ jobs:
       - name: Colcon test in container verify files
         run: |
           cd ros_ws
-          grep "Hostname=\"colcon-build-in-container\"" test_results_in_container/demo_nodes_cpp/Testing/*/Test.xml
+          grep "Hostname=\"colcon-in-container\"" test_results_in_container/demo_nodes_cpp/Testing/*/Test.xml
