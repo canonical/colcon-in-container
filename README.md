@@ -1,6 +1,6 @@
 # colcon-in-container
 
-colcon verb extension to build and test inside a container and transfert the restults back to the host
+colcon verb extension to build and test inside a container and transfer the restults back to the host
 
 ## How it works
 
