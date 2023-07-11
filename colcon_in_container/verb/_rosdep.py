@@ -18,19 +18,31 @@ from typing import Set
 from colcon_in_container.logging import logger
 
 
-def call_rosdep(provider, ros_distro, dependency_types: Set[str]):
-    """Call rosdep init, update and install provided dependency_types."""
-    # initialize and call rosdep over our repository
-    logger.info('Initialising and calling rosdep')
-    commands = [
-        'rosdep init',
-        'rosdep update',
-        # Avoid rosdep/apt interactive shell error message
-        'export DEBIAN_FRONTEND=noninteractive',
-        'rosdep install --from-paths /ws/src --ignore-src -y '
-        f'--rosdistro={ros_distro} '
-    ]
-    for dependency_type in dependency_types:
-        commands[-1] += f'--dependency-types={dependency_type} '
+class Rosdep(object):
+    """Rosdep tool class wrapper to call rosdep in a provider."""
 
-    return provider.execute_commands(commands)
+    def __init__(self, provider, ros_distro):
+        """Initialize rosdep and call rosdep init."""
+        self.provider = provider
+        self.ros_distro = ros_distro
+        logger.info('Initialising rosdep')
+        self.provider.execute_command(['rosdep', 'init'])
+
+    def update(self):
+        """Call rosdep update."""
+        logger.info('Updating rosdep')
+        return self.provider.execute_command(['rosdep', 'update'])
+
+    def install(self, dependency_types: Set[str]):
+        """Call rosdep install on the provided dependency_types."""
+        logger.info('Initialising and calling rosdep')
+        commands = [
+            # Avoid rosdep/apt interactive shell error message
+            'export DEBIAN_FRONTEND=noninteractive',
+            'rosdep install --from-paths /ws/src --ignore-src -y '
+            f'--rosdistro={self.ros_distro} '
+        ]
+        for dependency_type in dependency_types:
+            commands[-1] += f'--dependency-types={dependency_type} '
+
+        return self.provider.execute_commands(commands)

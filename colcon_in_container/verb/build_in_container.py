@@ -29,7 +29,7 @@ from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
-from colcon_in_container.verb._rosdep import call_rosdep
+from colcon_in_container.verb._rosdep import Rosdep
 
 
 class BuildInContainerVerb(VerbExtensionPoint):
@@ -70,7 +70,7 @@ class BuildInContainerVerb(VerbExtensionPoint):
         result build directory.
         """
         commands: List[Callable[[], int]] = [
-            partial(call_rosdep, self.provider, args.ros_distro,
+            partial(self.rosdep.install,
                     ['build',
                      'buildtool',
                      'build_export',
@@ -101,6 +101,8 @@ class BuildInContainerVerb(VerbExtensionPoint):
         self.provider = ProviderFactory.create(context.args.provider,
                                                context.args.ros_distro)
 
+        self.rosdep = Rosdep(self.provider, context.args.ros_distro)
+        self.rosdep.update()
         # copy packages into the instance
         decorators = get_packages(context.args, recursive_categories=('run', ))
         logger.info(f'Discovered {len(decorators)}, '
