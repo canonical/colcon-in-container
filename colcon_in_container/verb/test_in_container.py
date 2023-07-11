@@ -21,8 +21,6 @@ from typing import Callable, List
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
 from colcon_core.package_selection import get_packages
-from colcon_core.plugin_system import satisfies_version
-from colcon_core.verb import VerbExtensionPoint
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
@@ -30,17 +28,14 @@ from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
+from colcon_in_container.verb.in_container import InContainer
 
 
-class TestInContainerVerb(VerbExtensionPoint):
+class TestInContainerVerb(InContainer):
     """Call a colcon test command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
-        satisfies_version(VerbExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
-        self.host_test_results_folder = 'test_results_in_container'
-        self.host_build_in_container_folder = 'build_in_container'
-        self.host_install_in_container_folder = 'install_in_container'
 
     def add_arguments(self, *, parser):  # noqa: D102
 
@@ -81,7 +76,8 @@ class TestInContainerVerb(VerbExtensionPoint):
 
         try:
             self.provider.download_result(
-                result_path_in_instance='/ws/test_results',
+                result_path_in_instance=self.instance_workspace_path
+                + 'test_results',
                 result_path_on_host=self.host_test_results_folder)
         except provider_exceptions.FileNotFoundInInstanceError:
             return 1
@@ -110,10 +106,10 @@ class TestInContainerVerb(VerbExtensionPoint):
         # upload build and install folder
         self.provider.upload_directory(
             host_path=self.host_build_in_container_folder,
-            instance_path='/ws/build')
+            instance_path=self.instance_workspace_path + 'build')
         self.provider.upload_directory(
             host_path=self.host_install_in_container_folder,
-            instance_path='/ws/install')
+            instance_path=self.instance_workspace_path + 'install')
 
         test_exit_code = self._test(context.args)
         if test_exit_code and context.args.debug:

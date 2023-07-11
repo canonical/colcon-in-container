@@ -21,8 +21,6 @@ from typing import Callable, List
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
 from colcon_core.package_selection import get_packages
-from colcon_core.plugin_system import satisfies_version
-from colcon_core.verb import VerbExtensionPoint
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
@@ -30,16 +28,14 @@ from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument,\
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
+from colcon_in_container.verb.in_container import InContainer
 
 
-class BuildInContainerVerb(VerbExtensionPoint):
+class BuildInContainerVerb(InContainer):
     """Call a colcon build command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
-        satisfies_version(VerbExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
-        self.host_build_folder = 'build_in_container'
-        self.host_install_folder = 'install_in_container'
 
     def add_arguments(self, *, parser):  # noqa: D102
 
@@ -84,11 +80,13 @@ class BuildInContainerVerb(VerbExtensionPoint):
 
         try:
             self.provider.download_result(
-                result_path_in_instance='/ws/install',
-                result_path_on_host=self.host_install_folder)
+                result_path_in_instance=self.instance_workspace_path
+                + 'install',
+                result_path_on_host=self.host_install_in_container_folder)
             self.provider.download_result(
-                result_path_in_instance='/ws/build',
-                result_path_on_host=self.host_build_folder)
+                result_path_in_instance=self.instance_workspace_path
+                + 'build',
+                result_path_on_host=self.host_build_in_container_folder)
         except provider_exceptions.FileNotFoundInInstanceError:
             return 1
         return 0
