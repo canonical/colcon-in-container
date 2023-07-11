@@ -99,7 +99,7 @@ class TestInContainerVerb(VerbExtensionPoint):
         self.rosdep.update()
         # copy packages into the instance
         decorators = get_packages(context.args, recursive_categories=('run', ))
-        logger.info(f'Discovered {len(decorators)}, '
+        logger.info(f'Discovered {len(decorators)} packages, '
                     'uploading them in the instance')
         for decorator in decorators:
             package = decorator.descriptor
