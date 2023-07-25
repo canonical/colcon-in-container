@@ -147,8 +147,8 @@ class LXDClient(Provider):
                     mode=unix_permissions)
                 # determine what the file is:
                 # a directory or a symbolic link
-                fmode = os.stat(path).st_mode
-                if stat.S_ISLNK(fmode):
+                file_mode = os.stat(path).st_mode
+                if stat.S_ISLNK(file_mode):
                     headers['X-LXD-type'] = 'symlink'
                 else:
                     headers['X-LXD-type'] = 'directory'

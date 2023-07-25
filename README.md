@@ -1,6 +1,6 @@
 # colcon-in-container
 
-colcon verb extension to build and test inside a container and transfer the restults back to the host
+colcon verb extension to build and test inside a container and transfer the results back to the host
 
 ## How it works
 
@@ -89,7 +89,7 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an
                         error. This flag includes "--debug".
-  --provider {lxd}      Environement provider.
+  --provider {lxd}      Environment provider.
 ```
 
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
