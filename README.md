@@ -10,7 +10,7 @@ colcon verb extension to build and test inside a container and transfer the rest
 - Start an ephemeral `LXD` container
 - Install a fresh ROS 2
 - Upload your workspace inside the container
-- Install all your rosdep dependencies (make sure to keep your `package.xml` updated!)
+- Install your build time rosdep dependencies (make sure to keep your `package.xml` updated!)
 - Build you workspace inside the container
 - Download the `build/` and `install/` directories of the built workspace on your host under: `build_in_container` and `install_in_container/`
 
@@ -20,7 +20,7 @@ colcon verb extension to build and test inside a container and transfer the rest
 - Start an ephemeral `LXD` container
 - Install a fresh ROS 2
 - Upload your workspace as well as your `build_in_container` and `install_in_container/` directories inside the container
-- Install all your rosdep dependencies (make sure to keep your `package.xml` updated!)
+- Install your test time your rosdep dependencies (make sure to keep your `package.xml` updated!)
 - Test you workspace inside the container
 - Download the test results directory of the built workspace on your host under: `test_results_in_container/`
 
