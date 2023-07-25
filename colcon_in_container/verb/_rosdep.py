@@ -33,7 +33,7 @@ class Rosdep(object):
         logger.info('Updating rosdep')
         return self.provider.execute_command(['rosdep', 'update'])
 
-    def install(self, dependency_types: Set[str]):
+    def install(self, dependency_types: Set[str] = set()):
         """Call rosdep install on the provided dependency_types."""
         logger.info('Initialising and calling rosdep')
         commands = [
