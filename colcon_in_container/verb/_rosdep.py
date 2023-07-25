@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Set
+from typing import Optional, Set
 
 from colcon_in_container.logging import logger
 
@@ -33,7 +33,7 @@ class Rosdep(object):
         logger.info('Updating rosdep')
         return self.provider.execute_command(['rosdep', 'update'])
 
-    def install(self, dependency_types: Set[str] = set()):
+    def install(self, dependency_types: Optional[Set[str]] = None):
         """Call rosdep install on the provided dependency_types."""
         logger.info('Initialising and calling rosdep')
         commands = [
@@ -42,7 +42,8 @@ class Rosdep(object):
             'rosdep install --from-paths /ws/src --ignore-src -y '
             f'--rosdistro={self.ros_distro} '
         ]
-        for dependency_type in dependency_types:
-            commands[-1] += f'--dependency-types={dependency_type} '
+        if dependency_types:
+            for dependency_type in dependency_types:
+                commands[-1] += f'--dependency-types={dependency_type} '
 
         return self.provider.execute_commands(commands)
