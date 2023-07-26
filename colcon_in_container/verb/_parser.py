@@ -66,5 +66,5 @@ def add_instance_argument(parser):
         type=str,
         choices=['lxd'],
         default='lxd',
-        help='Environement provider.'
+        help='Environment provider.'
     )

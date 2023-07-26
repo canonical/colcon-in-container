@@ -31,8 +31,8 @@ from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
 
 
-class BuildInContainerVerb(InContainer):
-    """Call a colcon build command inside a fresh container."""
+class TestInContainerVerb(InContainer):
+    """Call a colcon test command inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
@@ -42,37 +42,33 @@ class BuildInContainerVerb(InContainer):
         add_ros_distro_argument(parser)
 
         parser.add_argument(
-            '--colcon-build-args',
+            '--colcon-test-args',
             default='',
             metavar='*',
             type=str.lstrip,
-            help='Pass arguments to the colcon build command.'
+            help='Pass arguments to the colcon test command. '
             'Arguments matching other options must be prefixed by a space.',
         )
 
         add_instance_argument(parser)
         add_packages_arguments(parser)
 
-    def _colcon_build(self, colcon_build_args):
-        logger.info(f'building workspace with args: {colcon_build_args}')
+    def _colcon_test(self, colcon_test_args):
+        logger.info(f'testing workspace with args: {colcon_test_args}')
         return self.provider.execute_commands([
             f'colcon --log-level={logger.getEffectiveLevel()} '
-            f'build {colcon_build_args}'])
+            f'test --test-result-base="test_results" {colcon_test_args}'])
 
-    def _build(self, args):
-        """Build the workspace.
+    def _test(self, args):
+        """Test the workspace.
 
-        Pull build-time dependencies, build the workspace and download the
-        result build directory.
+        Pull test dependencies, test the workspace and download the
+        result test directories.
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    ['build',
-                     'buildtool',
-                     'build_export',
-                     'buildtool_export',
-                     'test']),
-            partial(self._colcon_build, args.colcon_build_args)]
+                    ['exec', 'test']),
+            partial(self._colcon_test, args.colcon_test_args)]
         for command in commands:
             exit_code = command()
             if exit_code:
@@ -81,12 +77,8 @@ class BuildInContainerVerb(InContainer):
         try:
             self.provider.download_result(
                 result_path_in_instance=self.instance_workspace_path
-                + 'install',
-                result_path_on_host=self.host_install_in_container_folder)
-            self.provider.download_result(
-                result_path_in_instance=self.instance_workspace_path
-                + 'build',
-                result_path_on_host=self.host_build_in_container_folder)
+                + 'test_results',
+                result_path_on_host=self.host_test_results_folder)
         except provider_exceptions.FileNotFoundInInstanceError:
             return 1
         return 0
@@ -111,13 +103,21 @@ class BuildInContainerVerb(InContainer):
                 continue
             self.provider.upload_package(package.path)
 
-        build_exit_code = self._build(context.args)
-        if build_exit_code and context.args.debug:
-            logger.error(f'Build failed with error code {build_exit_code}.')
+        # upload build and install folder
+        self.provider.upload_directory(
+            host_path=self.host_build_in_container_folder,
+            instance_path=self.instance_workspace_path + 'build')
+        self.provider.upload_directory(
+            host_path=self.host_install_in_container_folder,
+            instance_path=self.instance_workspace_path + 'install')
+
+        test_exit_code = self._test(context.args)
+        if test_exit_code and context.args.debug:
+            logger.error(f'Test failed with error code {test_exit_code}.')
             logger.warn('Debug was selected, entering the instance.')
             self.provider.shell()
         elif context.args.shell_after:
             logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
 
-        return build_exit_code
+        return test_exit_code

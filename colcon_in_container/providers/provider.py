@@ -26,7 +26,7 @@ class Provider(ABC):
     """Provider client."""
 
     def __init__(self, ros_distro):  # noqa: D107
-        self.instance_name = 'colcon-build-in-container'
+        self.instance_name = 'colcon-in-container'
         self.ros_distro = ros_distro
         self.ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.logger_instance = logger.getChild('instance')
@@ -88,12 +88,20 @@ class Provider(ABC):
     def upload_package(self, package_path):
         """Upload package to instance workspace."""
         package_name = os.path.basename(package_path)
-        logger.info(f'uploading {package_path} into the instance /ws/src/')
         instance_package_path = f'/ws/src/{package_name}'
-        self.execute_command(['mkdir', '-p', instance_package_path])
+        self.upload_directory(host_path=package_path,
+                              instance_path=instance_package_path)
+
+    def upload_directory(self, *, host_path, instance_path):
+        """Upload package to instance workspace."""
+        logger.info(f'uploading {host_path} into the instance {instance_path}')
+        if not os.path.isdir(host_path):
+            raise exceptions.FileNotFoundInHostError(host_path)
+
+        self.execute_command(['mkdir', '-p', instance_path])
         self._copy_from_host_to_instance(
-            host_path=package_path,
-            instance_path=instance_package_path
+            host_path=host_path,
+            instance_path=instance_path
         )
 
     @abstractmethod
