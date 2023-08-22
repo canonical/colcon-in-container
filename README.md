@@ -25,6 +25,29 @@ colcon verb extension to build and test inside a container and transfer the resu
 - Download the test results directory of the built workspace on your host under: `test_results_in_container/`
 
 ## Usage
+### Installation
+#### colcon in-container
+To use the extension you will need to install it and also install and initialize LXD. Both steps are described below.
+The extension can be installed via `pip` using the URL with the following command:
+
+```
+pip3 install -U git+https://github.com/canonical/colcon-in-container
+```
+#### LXD
+
+`LXD` can be installed with snap:
+
+```
+sudo snap install lxd
+```
+
+Alternative installation methods are available in the [`LXD` documentation](https://documentation.ubuntu.com/lxd/en/latest/installing/).
+
+Initialize `LXD` with:
+
+```
+lxd init --auto
+```
 
 ### colcon build-in-container
 
