@@ -2,6 +2,14 @@
 
 colcon verb extension to build and test inside a container and transfer the results back to the host
 
+## Use cases
+The colcon `in-container` extension can be used to:
+- Build and test a ROS 2 package in a clean environment before releasing it
+- Build and test a ROS 2 package for multiple ROS distributions
+- Make sure that your `package.xml` have up to date dependencies inside
+- Build and test a ROS 2 workspace with a ROS 2 version you haven't installed
+- Ensure that the [snapcraft ros plugin](https://ubuntu.com/robotics/docs/tutorials#heading--snapcraft) will provide all the dependencies for your [snapped app](https://ubuntu.com/robotics/docs/identify-functionalities-and-applications-of-a-robotics-snap)
+
 ## How it works
 
 ### colcon build-in-container
@@ -118,13 +126,6 @@ options:
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
 This can be overwritten with the option `--ros-distro` allowing one to compile for a different ROS distribution than the one associated with the host OS.
 
-## Use cases
-The colcon `in-container` extension can be used to:
-- Build and test a ROS 2 package in a clean environment before releasing it
-- Build and test a ROS 2 package for a different ROS distribution
-- Make sure that your `package.xml` are up to date
-- Build and test a ROS 2 workspace with a ROS 2 version you haven't installed
-- And more!
 
 ## Troubleshooting
 If you have issues with pylxd and openssl:
