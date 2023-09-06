@@ -1,6 +1,26 @@
 # colcon-in-container
 
-colcon verb extension to build and test inside a container and transfer the results back to the host
+colcon verb extension to build and test inside a fresh and isolated ROS environment and transfer the results back to the host.
+
+With this extension, developers can build ROS packages for any ROS 2 distributions directly from colcon independently of the host. With it, one can validate builds and tests making sure all the dependencies are properly listed in their `package.xml` on any ROS 2 distribution. Validating packages and workspace in an isolated and ephemeral environment is key for distributing and packaging software.
+
+## Quickstart
+
+- Install the tool:
+```
+pip3 install -U git+https://github.com/canonical/colcon-in-container
+```
+- Install and initialize LXD:
+```
+sudo snap install lxd
+lxd init --auto
+```
+- At the root of the ROS 2 workspace
+```
+colcon --log-level=info build-in-container --ros-distro humble
+```
+
+See the [usage](#usage) section for advanced information on installation and tool usage.
 
 ## How it works
 
@@ -33,6 +53,7 @@ The extension can be installed via `pip` using the URL with the following comman
 ```
 pip3 install -U git+https://github.com/canonical/colcon-in-container
 ```
+Due to potential conflict with the python dependencies `cryptography` and `pyopenssl` between a ROS install and the tool, a [python virtual environment](https://docs.python.org/3/library/venv.html) is recommended.
 #### LXD
 
 `LXD` can be installed with snap:
@@ -130,3 +151,10 @@ The colcon `in-container` extension can be used to:
 If you have issues with pylxd and openssl:
 
 Pylxd doesn't work from the apt debian or the pip package. You [must be installed from source](https://discuss.linuxcontainers.org/t/5-0-2-raises-connection-reset-by-peer-exception-on-pylxds-container-execute/16292)
+
+Please open a [GitHub issue](https://github.com/canonical/colcon-in-container/issues) if you face any issue with the tool.
+
+## Contributions
+For bugs and feature request, please open a [GitHub issue](https://github.com/canonical/colcon-in-container/issues).
+
+[Pull requests](https://github.com/canonical/colcon-in-container/pulls) are welcome.
