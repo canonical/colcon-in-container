@@ -30,6 +30,7 @@ pylxds
 pyopenssl
 pytest
 quickstart
+readthedocs
 rmtree
 rosdep
 rosdistro

@@ -17,7 +17,7 @@ pip3 install -U git+https://github.com/canonical/colcon-in-container
 sudo snap install lxd
 lxd init --auto
 ```
-- At the root of the ROS 2 workspace
+- Then call colcon with the build-in-container verb:
 ```
 colcon --log-level=info build-in-container --ros-distro humble
 ```
@@ -50,6 +50,9 @@ See the [usage](#usage) section for advanced information on installation and too
 ### Installation
 #### colcon in-container
 To use the extension you will need to install it and also install and initialize LXD. Both steps are described below.
+
+This being a colcon extension, make sure to have [colcon installed](https://colcon.readthedocs.io/en/released/user/installation.html).
+
 The extension can be installed via `pip` using the URL with the following command:
 
 ```
