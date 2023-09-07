@@ -2,7 +2,9 @@
 
 colcon verb extension to build and test inside a fresh and isolated ROS environment and transfer the results back to the host.
 
-With this extension, developers can build ROS packages for any ROS 2 distributions directly from colcon independently of the host. With it, one can validate builds and tests making sure all the dependencies are properly listed in their `package.xml` on any ROS 2 distribution. Validating packages and workspace in an isolated and ephemeral environment is key for distributing and packaging software.
+With this extension, developers can build ROS packages for any ROS 2 distributions directly from colcon independently of the host. 
+With it, one can validate 'builds' and 'tests' making sure all the dependencies are properly listed in their `package.xml` on any ROS 2 distribution. 
+Validating packages and workspace in an isolated and ephemeral environment is key for distributing and packaging software.
 
 ## Quickstart
 
