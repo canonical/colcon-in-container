@@ -27,7 +27,10 @@ pathlib
 plugin
 pylxd
 pylxds
+pyopenssl
 pytest
+quickstart
+readthedocs
 rmtree
 rosdep
 rosdistro
@@ -38,5 +41,6 @@ sudo
 symlink
 thomas
 ubuntu
+venv
 wronly
 yaml
