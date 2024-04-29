@@ -124,7 +124,8 @@ class ReleaseInContainerVerb(InContainer):
             partial(self._bloom_generate, package_name, args.bloom_generator),
             partial(self._generate_binary, package_name)]
         for command in commands:
-            if exit_code := command():
+            exit_code = command()
+            if exit_code:
                 raise ChildProcessError(f'Failed to run command: {command} in '
                                         'container.'
                                         f'Error code is {exit_code}')
