@@ -19,11 +19,20 @@ def known_words():
 
 
 def test_spell_check(known_words):
-    source_filenames = [
-        Path(__file__).parents[1] / 'setup.py',
-        Path(__file__).parents[1] / 'README.md'] + \
-        list((Path(__file__).parents[1] / 'colcon_in_container').glob('**/*.py')) + \
-        list((Path(__file__).parents[1] / 'test').glob('**/*.py'))
+    source_filenames = (
+        [
+            Path(__file__).parents[1] / 'setup.py',
+            Path(__file__).parents[1] / 'README.md'
+        ] +
+        list(
+            (
+                Path(__file__).parents[1] / 'colcon_in_container'
+            ).glob('**/*.py')
+        ) +
+        list(
+            (Path(__file__).parents[1] / 'test').glob('**/*.py')
+        )
+    )
 
     for source_filename in sorted(source_filenames):
         print('Spell checking:', source_filename)
