@@ -63,8 +63,8 @@ jobs:
       - name: Colcon release in container verify files
         run: |
           cd ros_ws
-          ls release_in_container/ros-humble-demo-nodes-cpp_*.deb
-          ls release_in_container/ros-humble-demo-nodes-cpp-dbgsym_*.ddeb
+          ls release_in_container/ros-${{ matrix.ros_version }}-demo-nodes-cpp_*.deb
+          ls release_in_container/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
           ls release_in_container/COLCON_IGNORE
           ls release_in_container/demo_nodes_cpp/.obj-x86_64-linux-gnu
           ls release_in_container/demo_nodes_cpp/debian
