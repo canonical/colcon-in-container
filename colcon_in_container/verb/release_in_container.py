@@ -64,7 +64,7 @@ class ReleaseInContainerVerb(InContainer):
             package_names.append(package.name)
         return package_names
 
-    def _install_bloom_dependencies(self):
+    def _install_bloom_dependencies(self, ros_distro):
         """Install bloom dependencies in the instance.
 
         Install all the bloom release dependencies in the instance.
@@ -79,7 +79,7 @@ class ReleaseInContainerVerb(InContainer):
             'debhelper '
             'dh-python '
             # necessary to set ROS_DISTRO
-            'ros-humble-ros-environment'
+            f'ros-{ros_distro}-ros-environment'
         ])
         if exit_code:
             raise ChildProcessError('Failed to install bloom dependencies '
@@ -161,7 +161,7 @@ class ReleaseInContainerVerb(InContainer):
         self.rosdep.update()
 
         try:
-            self._install_bloom_dependencies()
+            self._install_bloom_dependencies(context.args.ros_distro)
         except ChildProcessError as e:
             logger.error(str(e))
 
