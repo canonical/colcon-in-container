@@ -103,8 +103,8 @@ class LXDClient(Provider):
     def execute_command(self, command):
         """Execute the given command inside the instance."""
         return self.instance.execute(
-            command, stdout_handler=self.logger_instance.info,
-            stderr_handler=self.logger_instance.info, cwd='/ws'
+            command, stdout_handler=self.logger_instance.debug,
+            stderr_handler=self.logger_instance.debug, cwd='/ws'
         ).exit_code
 
     def _recursive_get(self, remote_path, local_path):
