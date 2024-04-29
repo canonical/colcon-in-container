@@ -28,4 +28,5 @@ class InContainer(ABC, VerbExtensionPoint):
         self.host_build_in_container_folder = 'build_in_container'
         self.host_install_in_container_folder = 'install_in_container'
         self.host_test_results_folder = 'test_results_in_container'
+        self.host_release_in_container_folder = 'release_in_container'
         self.instance_workspace_path = '/ws/'

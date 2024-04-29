@@ -5,8 +5,10 @@ buildtool
 cmake
 colcon
 dcmake
+debhelper
 debian
 distro
+fakeroot
 filepath
 frontend
 functools
@@ -32,6 +34,7 @@ pytest
 quickstart
 readthedocs
 rmtree
+rosdebian
 rosdep
 rosdistro
 scspell
@@ -41,6 +44,7 @@ sudo
 symlink
 thomas
 ubuntu
+utime
 venv
 wronly
 yaml
