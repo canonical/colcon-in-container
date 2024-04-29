@@ -56,3 +56,15 @@ jobs:
         run: |
           cd ros_ws
           grep "Hostname=\"colcon-in-container\"" test_results_in_container/demo_nodes_cpp/Testing/*/Test.xml
+      - name: Colcon release in container
+        run: |
+          cd ros_ws
+          colcon --log-level=info release-in-container --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
+      - name: Colcon release in container verify files
+        run: |
+          cd ros_ws
+          ls release_in_container/ros-humble-demo-nodes-cpp_*.deb
+          ls release_in_container/ros-humble-demo-nodes-cpp-dbgsym_*.ddeb
+          ls release_in_container/COLCON_IGNORE
+          ls release_in_container/demo_nodes_cpp/.obj-x86_64-linux-gnu
+          ls release_in_container/demo_nodes_cpp/debian
