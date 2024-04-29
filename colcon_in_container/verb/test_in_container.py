@@ -34,6 +34,8 @@ from colcon_in_container.verb.in_container import InContainer
 class TestInContainerVerb(InContainer):
     """Call a colcon test command inside a fresh container."""
 
+    __test__ = False
+
     def __init__(self):  # noqa: D107
         super().__init__()
 
