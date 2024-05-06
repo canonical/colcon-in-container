@@ -6,6 +6,7 @@ on:
   schedule:
     # Every two weeks
     - cron: '30 1 1,15 * *'
+  workflow_dispatch:
 
 # Test the released and current master branch
 jobs:
