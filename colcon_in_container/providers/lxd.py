@@ -63,8 +63,8 @@ class LXDClient(Provider):
             'source': {
                 'type': 'image',
                 'protocol': 'simplestreams',
-                'server': 'https://images.linuxcontainers.org',
-                'alias': f'ubuntu/{self.ubuntu_distro}/cloud/'
+                'server': 'https://cloud-images.ubuntu.com/minimal/releases/',
+                'alias': f'{self.ubuntu_distro}/'
                 f'{host_architecture()}',
             },
             'ephemeral': True,
