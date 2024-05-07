@@ -93,33 +93,40 @@ class TestInContainerVerb(InContainer):
         self.provider = ProviderFactory.create(context.args.provider,
                                                context.args.ros_distro)
 
-        self.rosdep = Rosdep(self.provider, context.args.ros_distro)
-        self.rosdep.update()
-        # copy packages into the instance
-        decorators = get_packages(context.args, recursive_categories=('run', ))
-        logger.info(f'Discovered {len(decorators)} packages, '
-                    'uploading them in the instance')
-        for decorator in decorators:
-            package = decorator.descriptor
-            if not decorator.selected:
-                continue
-            self.provider.upload_package(package.path)
+        try:
+            self.provider.wait_for_install()
+        except provider_exceptions.CloudInitError as e:
+            logger.error(e)
+            exit_code = 1
+        else:
+            self.rosdep = Rosdep(self.provider, context.args.ros_distro)
+            self.rosdep.update()
+            # copy packages into the instance
+            decorators = get_packages(context.args, recursive_categories=('run', ))
+            logger.info(f'Discovered {len(decorators)} packages, '
+                        'uploading them in the instance')
+            for decorator in decorators:
+                package = decorator.descriptor
+                if not decorator.selected:
+                    continue
+                self.provider.upload_package(package.path)
 
-        # upload build and install folder
-        self.provider.upload_directory(
-            host_path=self.host_build_in_container_folder,
-            instance_path=self.instance_workspace_path + 'build')
-        self.provider.upload_directory(
-            host_path=self.host_install_in_container_folder,
-            instance_path=self.instance_workspace_path + 'install')
+            # upload build and install folder
+            self.provider.upload_directory(
+                host_path=self.host_build_in_container_folder,
+                instance_path=self.instance_workspace_path + 'build')
+            self.provider.upload_directory(
+                host_path=self.host_install_in_container_folder,
+                instance_path=self.instance_workspace_path + 'install')
 
-        test_exit_code = self._test(context.args)
-        if test_exit_code and context.args.debug:
-            logger.error(f'Test failed with error code {test_exit_code}.')
+            exit_code = self._test(context.args)
+
+        if exit_code and context.args.debug:
+            logger.error(f'Test failed with error code {exit_code}.')
             logger.warn('Debug was selected, entering the instance.')
             self.provider.shell()
         elif context.args.shell_after:
             logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
 
-        return test_exit_code
+        return exit_code

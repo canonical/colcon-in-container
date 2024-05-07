@@ -39,6 +39,15 @@ class Provider(ABC):
         """Clean the created instance."""
         pass
 
+    def wait_for_install(self):
+        """Wait for installation to be done."""
+        logger.info('Waiting for ROS 2 to be installed')
+        cloud_init_exit_code = self.execute_command(['cloud-init', 'status', '--wait'])
+        if cloud_init_exit_code:
+            raise exceptions.CloudInitError(
+                f'Failed to run cloud-init with error: {cloud_init_exit_code}. '
+            )
+
     @abstractmethod
     def execute_command(self, command) -> int:
         """Execute the given command inside the instance."""

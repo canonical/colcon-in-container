@@ -156,21 +156,23 @@ class ReleaseInContainerVerb(InContainer):
 
         self.provider = ProviderFactory.create(context.args.provider,
                                                context.args.ros_distro)
-
-        self.rosdep = Rosdep(self.provider, context.args.ros_distro)
-        self.rosdep.update()
-
         try:
-            self._install_bloom_dependencies(context.args.ros_distro)
-        except ChildProcessError as e:
-            logger.error(str(e))
+            self.provider.wait_for_install()
 
-        # copy packages into the instance
-        decorators = get_packages(context.args, recursive_categories=('run', ))
-        logger.info(f'Discovered {len(decorators)} packages, '
-                    'uploading the selected ones in the instance')
+            self.rosdep = Rosdep(self.provider, context.args.ros_distro)
+            self.rosdep.update()
 
-        try:
+            try:
+                self._install_bloom_dependencies(context.args.ros_distro)
+            except ChildProcessError as e:
+                logger.error(str(e))
+
+            # copy packages into the instance
+            decorators = get_packages(context.args, recursive_categories=('run', ))
+            logger.info(f'Discovered {len(decorators)} packages, '
+                        'uploading the selected ones in the instance')
+
+
             package_names = self._upload_selected_packages(decorators)
             if not package_names:
                 raise FileNotFoundError('No package found to release')
@@ -188,7 +190,9 @@ class ReleaseInContainerVerb(InContainer):
 
             self._download_packages_results()
 
-        except (SystemError, FileNotFoundError) as e:
+        except (SystemError,
+                FileNotFoundError,
+                provider_exceptions.CloudInitError) as e:
             logger.error(str(e))
             if context.args.debug or context.args.shell_after:
                 logger.warn('Debug was selected, entering the instance')
