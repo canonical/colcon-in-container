@@ -102,7 +102,8 @@ class TestInContainerVerb(InContainer):
             self.rosdep = Rosdep(self.provider, context.args.ros_distro)
             self.rosdep.update()
             # copy packages into the instance
-            decorators = get_packages(context.args, recursive_categories=('run', ))
+            decorators = get_packages(context.args,
+                                      recursive_categories=('run', ))
             logger.info(f'Discovered {len(decorators)} packages, '
                         'uploading them in the instance')
             for decorator in decorators:

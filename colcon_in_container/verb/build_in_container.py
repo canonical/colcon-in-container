@@ -97,18 +97,19 @@ class BuildInContainerVerb(InContainer):
             sys.exit(1)
 
         self.provider = ProviderFactory.create(context.args.provider,
-                                                context.args.ros_distro)
+                                               context.args.ros_distro)
         try:
             self.provider.wait_for_install()
         except provider_exceptions.CloudInitError as e:
             logger.error(e)
-            # temporary until error managment is migrated to exceptions
+            # temporary until error management is migrated to exceptions
             exit_code = 1
         else:
             self.rosdep = Rosdep(self.provider, context.args.ros_distro)
             self.rosdep.update()
             # copy packages into the instance
-            decorators = get_packages(context.args, recursive_categories=('run', ))
+            decorators = get_packages(context.args,
+                                      recursive_categories=('run', ))
             logger.info(f'Discovered {len(decorators)} packages, '
                         'uploading them in the instance')
             for decorator in decorators:
@@ -117,7 +118,6 @@ class BuildInContainerVerb(InContainer):
                     continue
                 self.provider.upload_package(package.path)
             exit_code = self._build(context.args)
-
 
         if exit_code and context.args.debug:
             logger.error(f'Build failed with error code {exit_code}.')

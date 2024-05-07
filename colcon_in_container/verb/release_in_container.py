@@ -168,10 +168,10 @@ class ReleaseInContainerVerb(InContainer):
                 logger.error(str(e))
 
             # copy packages into the instance
-            decorators = get_packages(context.args, recursive_categories=('run', ))
+            decorators = get_packages(context.args,
+                                      recursive_categories=('run', ))
             logger.info(f'Discovered {len(decorators)} packages, '
                         'uploading the selected ones in the instance')
-
 
             package_names = self._upload_selected_packages(decorators)
             if not package_names:
