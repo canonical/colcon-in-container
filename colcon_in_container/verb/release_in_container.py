@@ -100,7 +100,7 @@ class ReleaseInContainerVerb(InContainer):
     def _save_results(self, package_name):
         logger.info(f'Saving results for {package_name}')
         return self.provider.execute_commands([
-            f'mkdir -p /ws/release/{package_name}'
+            f'mkdir -p /ws/release/{package_name}',
             f'mv /ws/src/{package_name}/debian /ws/release/{package_name}',
             f'mv /ws/src/{package_name}/*.deb /ws/release/{package_name}',
             f'mv /ws/src/{package_name}/*.ddeb /ws/release/{package_name}'])
