@@ -114,7 +114,7 @@ options:
                         Pass arguments to the colcon build command
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
-  --provider            Environment provider.
+  --provider {lxd}      Environment provider.
 ```
 
 By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
@@ -184,7 +184,7 @@ options:
                         Pass arguments to the colcon build command
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
-  --provider            Environment provider.
+  --provider {lxd}      Environment provider.
 ```
 
 By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
