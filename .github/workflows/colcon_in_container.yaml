@@ -41,7 +41,7 @@ jobs:
       - name: Colcon build in container
         run: |
           cd ros_ws
-          colcon --log-level=info build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
+          colcon --log-level=debug build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: Colcon build in container verify files
         run: |
           cd ros_ws
@@ -51,7 +51,7 @@ jobs:
       - name: Colcon test in container
         run: |
           cd ros_ws
-          colcon --log-level=info test-in-container --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
+          colcon --log-level=debug test-in-container --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
       - name: Colcon test in container verify files
         run: |
           cd ros_ws
@@ -59,7 +59,7 @@ jobs:
       - name: Colcon release in container
         run: |
           cd ros_ws
-          colcon --log-level=info release-in-container --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
+          colcon --log-level=debug release-in-container --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
       - name: Colcon release in container verify files
         run: |
           cd ros_ws
