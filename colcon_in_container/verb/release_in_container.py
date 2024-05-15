@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Canonical, Ltd.
+# Copyright (C) 2024 Canonical, Ltd.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ from colcon_in_container.verb.in_container import InContainer
 
 
 class ReleaseInContainerVerb(InContainer):
-    """Build a Debian inside a fresh container."""
+    """Build a Debian package inside a fresh container."""
 
     def __init__(self):  # noqa: D107
         super().__init__()
@@ -118,7 +118,7 @@ class ReleaseInContainerVerb(InContainer):
     def _release_package(self, package_name, args):
         """Release the package.
 
-        Run bloom-generate rosdebian.
+        Run bloom-generate rosdebian|debian.
 
         Raise: ChildProcessError when a command fails in the container.
         """
@@ -143,7 +143,7 @@ class ReleaseInContainerVerb(InContainer):
     def _download_packages_results(self):
         """Download the package release results.
 
-        Run bloom-generate rosdebian.
+        Download the package release results back on the host.
 
         Raise: FileNotFoundError when provided path doesn't exist.
         """
@@ -183,7 +183,7 @@ class ReleaseInContainerVerb(InContainer):
         try:
             package_names = self._upload_selected_packages(decorators)
             if not package_names:
-                raise FileNotFoundError('No package found to release')
+                raise FileNotFoundError('No package found for release')
 
             for package in package_names:
                 try:

@@ -54,7 +54,7 @@ See the [usage](#usage) section for advanced information on installation and too
 - Install the necessary software to generate a Debian file
 - Upload your workspace inside the container
 - Install your build time rosdep dependencies (make sure to keep your `package.xml` updated!)
-- Generate the Debian for each of the selected packages.
+- Generate the Debian for each of the selected packages
 - Download the results of the releases on your host under: `release_in_container/`
 
 ## Usage
