@@ -63,7 +63,8 @@ class LXDClient(Provider):
             # https://github.com/canonical/cloud-init/issues/5223
             cloud_init_url = 'https://cloud-images.ubuntu.com/releases/'
         else:
-            cloud_init_url = 'https://cloud-images.ubuntu.com/minimal/releases/'
+            cloud_init_url = \
+                'https://cloud-images.ubuntu.com/minimal/releases/'
 
         config: Dict[str, Any] = {
             'name': self.instance_name,
