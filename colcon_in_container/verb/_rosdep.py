@@ -35,7 +35,7 @@ class Rosdep(object):
 
     def install(self, dependency_types: Optional[Set[str]] = None):
         """Call rosdep install on the provided dependency_types."""
-        logger.info('Initialising and calling rosdep')
+        logger.info('Installing dependencies with rosdep')
         commands = [
             # Avoid rosdep/apt interactive shell error message
             'export DEBIAN_FRONTEND=noninteractive',

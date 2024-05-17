@@ -58,12 +58,20 @@ class LXDClient(Provider):
             raise exceptions.ProviderNotConfiguredError(
                 'LXD is not initialised. Please run `lxd init --auto`')
 
+        if self.ubuntu_distro == 'noble':
+            # necessary due to
+            # https://github.com/canonical/cloud-init/issues/5223
+            cloud_init_url = 'https://cloud-images.ubuntu.com/releases/'
+        else:
+            cloud_init_url = \
+                'https://cloud-images.ubuntu.com/minimal/releases/'
+
         config: Dict[str, Any] = {
             'name': self.instance_name,
             'source': {
                 'type': 'image',
                 'protocol': 'simplestreams',
-                'server': 'https://cloud-images.ubuntu.com/minimal/releases/',
+                'server': cloud_init_url,
                 'alias': f'{self.ubuntu_distro}/'
                 f'{host_architecture()}',
             },
@@ -103,8 +111,8 @@ class LXDClient(Provider):
     def execute_command(self, command):
         """Execute the given command inside the instance."""
         return self.instance.execute(
-            command, stdout_handler=self.logger_instance.info,
-            stderr_handler=self.logger_instance.info, cwd='/ws'
+            command, stdout_handler=self.logger_instance.debug,
+            stderr_handler=self.logger_instance.debug, cwd='/ws'
         ).exit_code
 
     def _recursive_get(self, remote_path, local_path):

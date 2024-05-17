@@ -46,6 +46,17 @@ See the [usage](#usage) section for advanced information on installation and too
 - Test you workspace inside the container
 - Download the test results directory of the built workspace on your host under: `test_results_in_container/`
 
+### colcon release-in-container
+
+`colcon release-in-container` performs the following steps to release your workspace's packages:
+- Start an ephemeral `LXD` container
+- Install a fresh ROS 2
+- Install the necessary software to generate a Debian file
+- Upload your workspace inside the container
+- Install your build time rosdep dependencies (make sure to keep your `package.xml` updated!)
+- Generate the Debian for each of the selected packages
+- Download the results of the releases on your host under: `release_in_container/`
+
 ## Usage
 ### Installation
 #### colcon in-container
@@ -91,7 +102,7 @@ Usage help:
 ```
 $ colcon build-in-container --help
 
-usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--paths [PATH [PATH ...]]]
+usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
 
 Call a colcon build command inside a fresh container.
 
@@ -103,7 +114,7 @@ options:
                         Pass arguments to the colcon build command
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
-  --provider            Environment provider.
+  --provider {lxd}      Environment provider.
 ```
 
 By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
@@ -125,7 +136,7 @@ Usage help:
 ```
 $ colcon test-in-container --help
 
-usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--paths [PATH [PATH ...]]]
+usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
 
 Call a colcon test command inside a fresh container.
 
@@ -144,12 +155,47 @@ options:
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
 This can be overwritten with the option `--ros-distro` allowing one to compile for a different ROS distribution than the one associated with the host OS.
 
+### colcon release-in-container
+
+Basic usage:
+```
+colcon release-in-container
+```
+
+Advanced usage:
+```
+colcon --log-level=info release-in-container --ros-distro humble --bloom-generator rosdebian --debug
+```
+
+Usage help:
+```
+$ colcon release-in-container --help
+
+usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
+
+Call a colcon build command inside a fresh container.
+
+options:
+  -h, --help            show this help message and exit
+  --ros-distro ROS_DISTRO
+                        ROS version, can also be set by the environment variable ROS_DISTRO.
+  --bloom-generator {debian,rosdebian}
+                        Pass arguments to the bloom-generate command
+                        Pass arguments to the colcon build command
+  --debug               Shell into the environment in case the build fails.
+  --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
+  --provider {lxd}      Environment provider.
+```
+
+By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
+This can be overwritten with the option `--ros-distro` allowing one to compile for a different ROS distribution than the one associated with the host OS.
+
 ## Use cases
 The colcon `in-container` extension can be used to:
-- Build and test a ROS 2 package in a clean environment before releasing it
-- Build and test a ROS 2 package for a different ROS distribution
+- Build, test and release ROS 2 package in a clean environment
+- Build, test and release a ROS 2 package for a different ROS distribution
 - Make sure that your `package.xml` are up to date
-- Build and test a ROS 2 workspace with a ROS 2 version you haven't installed
+- Build, test and release a ROS 2 workspace with a ROS 2 version you haven't installed
 - And more!
 
 ## Troubleshooting
