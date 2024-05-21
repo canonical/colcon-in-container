@@ -21,13 +21,14 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
       - uses: canonical/setup-lxd@v0.1.0
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt upgrade -y
-          python -m pip install --upgrade pip
+          sudo rm /usr/lib/python3.*/EXTERNALLY-MANAGED || true
+          python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
       - name: Install the extension
