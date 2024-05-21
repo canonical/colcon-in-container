@@ -6,7 +6,11 @@
 apt:
   sources:
     ros2:
+{% if v1.distro_release == "noble" %}
+      source: "deb [arch={{ archmap[v1.machine] }}] http://packages.ros.org/ros2-testing/ubuntu {{ v1.distro_release }} main"
+{% else %}
       source: "deb [arch={{ archmap[v1.machine] }}] http://packages.ros.org/ros2/ubuntu {{ v1.distro_release }} main"
+{% endif %}
       keyid: C1CF 6E31 E6BA DE88 68B1 72B4 F42E D6FB AB17 C654
 package_update: true
 package_upgrade: true
@@ -21,11 +25,6 @@ packages:
   - python3-colcon-common-extensions
   - python3-pip
   - python3-rosdep
-{% if v1.distro_release == "noble" %}
-  - python3-rosinstall-generator
-{% else %}
-  - python3-rosinstall
-{% endif %}
 
 write_files:
   - content: |
