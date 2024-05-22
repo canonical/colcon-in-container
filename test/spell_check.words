@@ -5,6 +5,7 @@ buildtool
 cmake
 colcon
 dcmake
+ddeb
 debhelper
 debian
 distro
