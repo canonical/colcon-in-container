@@ -96,8 +96,6 @@ class LXDClient(Provider):
         logger.info('Downloading the image then creating the LXD instance')
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
-        logger.info('Waiting for ROS 2 to be installed')
-        self.execute_command(['cloud-init', 'status', '--wait'])
 
     def _clean_instance(self):
         if hasattr(self, 'instance') and self.instance:

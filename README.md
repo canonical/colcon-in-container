@@ -19,7 +19,7 @@ lxd init --auto
 ```
 - Then call colcon with the build-in-container verb:
 ```
-colcon --log-level=info build-in-container --ros-distro humble
+colcon --log-level=info build-in-container --ros-distro jazzy
 ```
 
 See the [usage](#usage) section for advanced information on installation and tool usage.
@@ -111,7 +111,7 @@ colcon build-in-container
 
 Advanced usage:
 ```
-colcon --log-level=info build-in-container --ros-distro humble --colcon-build-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
+colcon --log-level=info build-in-container --ros-distro jazzy --colcon-build-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
 ```
 
 Usage help:
@@ -145,7 +145,7 @@ colcon test-in-container
 
 Advanced usage:
 ```
-colcon --log-level=info test-in-container --ros-distro humble --colcon-test-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
+colcon --log-level=info test-in-container --ros-distro jazzy --colcon-test-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
 ```
 
 Usage help:
@@ -180,7 +180,7 @@ colcon release-in-container
 
 Advanced usage:
 ```
-colcon --log-level=info release-in-container --ros-distro humble --bloom-generator rosdebian --debug
+colcon --log-level=info release-in-container --ros-distro jazzy --bloom-generator rosdebian --debug
 ```
 
 Usage help:
