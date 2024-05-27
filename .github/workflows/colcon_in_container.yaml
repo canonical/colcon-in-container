@@ -10,19 +10,30 @@ on:
 
 # Test the released and current master branch
 jobs:
-  build_in_container_integration_test:
+  in_container_integration_test:
     name: "Integration Test"
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, [self-hosted, linux, X64, jammy, xlarge]]
         ros_version: [jazzy, humble, iron, rolling]
+        provider: [lxd, multipass]
+        exclude:
+          - os: ubuntu-20.04
+            provider: multipass
+          - os: ubuntu-22.04
+            provider: multipass
+          - os: ubuntu-24.04
+            provider: multipass
+          - {os: [self-hosted, linux, X64, jammy, xlarge], provider: lxd}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
       - uses: actions/setup-python@v5
-      - uses: canonical/setup-lxd@v0.1.0
+      - name: Install LXD
+        if: ${{ matrix.provider == 'lxd' }}
+        uses: canonical/setup-lxd@v0.1.0
       - name: Install dependencies
         run: |
           sudo apt update
@@ -31,6 +42,10 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
+
+          if [ ${{ matrix.provider }} == 'multipass' ]; then
+            sudo snap install multipass
+          fi
       - name: Install the extension
         run: |
           pip install .
@@ -43,7 +58,7 @@ jobs:
       - name: Colcon build in container
         run: |
           cd ros_ws
-          colcon --log-level=debug build-in-container --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
+          colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: Colcon build in container verify files
         run: |
           cd ros_ws
@@ -53,7 +68,7 @@ jobs:
       - name: Colcon test in container
         run: |
           cd ros_ws
-          colcon --log-level=debug test-in-container --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
+          colcon --log-level=debug test-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
       - name: Colcon test in container verify files
         run: |
           cd ros_ws
@@ -61,7 +76,7 @@ jobs:
       - name: Colcon release in container
         run: |
           cd ros_ws
-          colcon --log-level=debug release-in-container --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
+          colcon --log-level=debug release-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
       - name: Colcon release in container verify files
         run: |
           cd ros_ws
@@ -69,3 +84,4 @@ jobs:
           ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
           ls release_in_container/COLCON_IGNORE
           ls release_in_container/demo_nodes_cpp/debian
+
