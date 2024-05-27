@@ -86,6 +86,22 @@ Initialize `LXD` with:
 lxd init --auto
 ```
 
+#### Multipass
+As an alternative to `LXD`, one can use `multipass` as
+an environment provider.
+
+`multipass` is support on Linux, Windows and MacOS.
+
+`multipass` can be installed [following the documentation](https://multipass.run/install).
+
+#### Multipass environment variable
+
+`multipass` VMs attributes can be specified over environment variables:
+
+- `COLCON_IN_CONTAINER_MULTIPASS_CPUS`, default="2"
+- `COLCON_IN_CONTAINER_MULTIPASS_MEMORY`, default="2G"
+- `COLCON_IN_CONTAINER_MULTIPASS_DISK`, default="256G"
+
 ### colcon build-in-container
 
 Basic usage:
@@ -114,7 +130,7 @@ options:
                         Pass arguments to the colcon build command
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
-  --provider {lxd}      Environment provider.
+  --provider {lxd, multipass}      Environment provider.
 ```
 
 By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
@@ -149,7 +165,7 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an
                         error. This flag includes "--debug".
-  --provider {lxd}      Environment provider.
+  --provider {lxd, multipass}      Environment provider.
 ```
 
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
@@ -184,7 +200,7 @@ options:
                         Pass arguments to the colcon build command
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
-  --provider {lxd}      Environment provider.
+  --provider {lxd, multipass}      Environment provider.
 ```
 
 By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.

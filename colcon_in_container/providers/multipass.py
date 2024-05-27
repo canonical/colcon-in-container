@@ -45,9 +45,16 @@ class MultipassClient(Provider):
         if self._run(['info', self.instance_name]).returncode == 0:
            self._clean_instance()
 
+        cpus = os.getenv("COLCON_IN_CONTAINER_MULTIPASS_CPUS", default="2")
+        mem = os.getenv("COLCON_IN_CONTAINER_MULTIPASS_MEMORY", default="2G")
+        disk = os.getenv("COLCON_IN_CONTAINER_MULTIPASS_DISK", default="256G")
+
         logger.info('Downloading the image then creating the Multipass instance')
         self._run(['launch', self.ubuntu_distro,
               '--name', self.instance_name,
+              '--cpus', cpus,
+              '--memory', mem,
+              '--disk', disk,
               '--cloud-init', self.rendered_cloud_init_path,
               '--timeout', '1000'], check=True)
         self.execute_command(['cloud-init', 'status', '--wait'])
