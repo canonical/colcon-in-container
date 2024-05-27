@@ -35,3 +35,6 @@ write_files:
     path: /root/.bashrc
     append: true
     defer: true
+runcmd:
+ - [ mkdir, /ws ]
+ 

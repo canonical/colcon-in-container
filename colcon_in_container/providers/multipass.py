@@ -40,6 +40,19 @@ class MultipassClient(Provider):
             raise exceptions.ProviderNotInstalledOnHostError(
                 'Multipass is not installed. Please run `sudo snap install multipass`')
 
+        self._render_jinja_template()
+
+        if self._run(['info', self.instance_name]).returncode == 0:
+           self._clean_instance()
+
+        logger.info('Downloading the image then creating the Multipass instance')
+        self._run(['launch', self.ubuntu_distro,
+              '--name', self.instance_name,
+              '--cloud-init', self.rendered_cloud_init_path,
+              '--timeout', '1000'], check=True)
+        self.execute_command(['cloud-init', 'status', '--wait'])
+
+    def _render_jinja_template(self):
         config_directory = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'config')
         cloud_init_file = os.path.join(
@@ -57,17 +70,6 @@ class MultipassClient(Provider):
                     'Failed to write cloud-init file '
                     f'in {self.rendered_cloud_init_path}')
 
-        if self._run(['info', self.instance_name]).returncode == 0:
-           self._clean_instance()
-
-        logger.info('Downloading the image then creating the Multipass instance')
-        self._run(['launch', self.ubuntu_distro,
-              '--name', self.instance_name,
-              '--cloud-init', self.rendered_cloud_init_path,
-              '--timeout', '1000'], check=True)
-        self.execute_command(['cloud-init', 'status', '--wait'])
-
-
     def _run(self, command: List[str], **kwargs):
         """Execute a multipass command.
 
@@ -84,32 +86,31 @@ class MultipassClient(Provider):
     def execute_command(self, command: List[str]):
         """Execute the given command inside the instance."""
         completed_process = self._run(['exec', self.instance_name,
-                         '--working-directory', '/ws',
+                         '--working-directory', '/ws', '--', 'sudo',
                          *command],
                          capture_output=True)
-                         #check=True)
+
         self.logger_instance.debug(completed_process.stdout.strip())
-        return completed_process
+        return completed_process.returncode
 
     def _copy_from_instance_to_host(self, *, instance_path, host_path):
         """Copy data from the instance to the host."""
-        return_code = self._run(['transfer', '--recursive',
+        command_result = self._run(['transfer', '--recursive', '--parents',
                                  f'{self.instance_name}:{instance_path}',
                                  host_path], check=True)
-        if return_code:
+        if command_result.returncode:
             raise exceptions.FileNotFoundInInstanceError(instance_path)
 
     def _write_in_instance(self, *, instance_file_path, lines):
         """Write file in the instance."""
-        command = [self.multipass_path, 'transfer', '-', instance_file_path]
+        command = [self.multipass_path, 'transfer', '--parents',
+                   '-', f'{self.instance_name}:{instance_file_path}']
         with subprocess.Popen(
             command, stdin=subprocess.PIPE, stderr=subprocess.PIPE
         ) as proc:
-            assert proc.stdin is not None
-            assert proc.stderr is not None
 
             for line in lines:
-                proc.stdin.write(line)
+                proc.stdin.write(bytes(line, 'utf-8'))
 
             # Close stdin before reading stderr, otherwise read() will hang
             # because process is waiting for more data.
@@ -119,21 +120,31 @@ class MultipassClient(Provider):
             # for debugging an error.
             stderr = proc.stderr.read()
 
-        if proc.returncode != 0:
+        if proc.returncode:
             raise exceptions.ProviderClientError(
                 f'Failed to write data to destination {instance_file_path}. '
                 f'Failed withe return code: {proc.returncode} and stderr: {stderr}'
             )
 
     def _copy_from_host_to_instance(self, *, host_path, instance_path):
-        """Copy data from the instance to the host."""
-        return_code = self._run(['transfer', '--recursive',
-                                 host_path,
-                                 f'{self.instance_name}:{instance_path}'],
+        """Copy data from the instance to the host.
+        
+        Because we cannot transfer as root in the VM without being root on the host,
+        we use a trick to transfer it in a safe place then moving it.
+        """
+        temporary_instance_path = f'/home/ubuntu/{instance_path}'
+        transfer_result = self._run(['transfer', '--recursive', '--parents',
+                                 str(host_path),
+                                 f'{self.instance_name}:{temporary_instance_path}'],
                                  check=True)
-        if return_code:
+        if transfer_result.returncode:
             raise exceptions.FileNotFoundInInstanceError(instance_path)
+
+        move_return_code = self.execute_command([f'mv {temporary_instance_path}/* {instance_path}'])
+
+        if move_return_code:
+            raise exceptions.FileNotFoundInInstanceError(temporary_instance_path)
 
     def shell(self):
         """Shell into the instance."""
-        self._run(['exec', self.instance_name, '--', 'bash'])
+        self._run(['exec', self.instance_name, '--', 'sudo', 'bash'])
