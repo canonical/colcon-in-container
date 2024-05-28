@@ -50,3 +50,7 @@ class ProviderNotConfiguredError(Exception):
 
 class ProviderClientError(Exception):
     """Exception raised when the provider cannot connect to the client."""
+
+
+class CloudInitError(Exception):
+    """Exception raised when the cloud-init failed in the client."""
