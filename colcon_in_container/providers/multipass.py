@@ -47,7 +47,7 @@ class MultipassClient(Provider):
             self._clean_instance()
 
         cpus = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_CPUS', default='2')
-        mem = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_MEMORY', default='2G')
+        mem = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_MEMORY', default='4G')
         disk = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_DISK', default='256G')
 
         logger.info('Downloading the image then '
