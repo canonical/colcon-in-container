@@ -48,7 +48,7 @@ class MultipassClient(Provider):
 
         cpus = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_CPUS', default='2')
         mem = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_MEMORY', default='4G')
-        disk = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_DISK', default='256G')
+        disk = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_DISK', default='32G')
 
         logger.info('Downloading the image then '
                     'creating the Multipass instance')
