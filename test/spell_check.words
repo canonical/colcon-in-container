@@ -4,6 +4,7 @@ apache
 buildtool
 cmake
 colcon
+cpus
 dcmake
 ddeb
 debhelper
@@ -19,10 +20,13 @@ initialised
 initialising
 islnk
 iterdir
+jinja
 licence
 linux
 linuxcontainers
 lstrip
+multipass
+mypy
 noninteractive
 noqa
 openssl
@@ -34,6 +38,7 @@ pyopenssl
 pytest
 quickstart
 readthedocs
+returncode
 rmtree
 rosdebian
 rosdep
