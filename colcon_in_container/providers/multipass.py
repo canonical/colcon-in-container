@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from platform import processor
+from platform import machine
 import shutil
 import subprocess
 from typing import List
@@ -71,8 +71,16 @@ class MultipassClient(Provider):
             config = f.read()
 
         template = jinja2.Environment().from_string(source=config)
+        host_architecture = machine()
+        # support for windows 10 and 11 returning all kinds of values
+        # bugs.python.org/issue7146
+        if host_architecture in ['AMD64', 'amd64', 'x64']:
+            host_architecture = 'x86_64'
+        elif host_architecture in ['ARM64', 'arm64']:
+            host_architecture = 'aarch64'
+
         cloud_init_content = template.render(
-            {'v1': {'machine': processor(),
+            {'v1': {'machine': host_architecture,
                     'distro_release': self.ubuntu_distro}}
         )
 
