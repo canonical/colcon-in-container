@@ -169,7 +169,7 @@ options:
 ```
 
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
-This can be overwritten with the option `--ros-distro` allowing one to compile for a different ROS distribution than the one associated with the host OS.
+This can be overwritten with the option `--ros-distro` allowing one to test for a different ROS distribution than the one associated with the host OS.
 
 ### colcon release-in-container
 
@@ -189,7 +189,7 @@ $ colcon release-in-container --help
 
 usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
 
-Call a colcon build command inside a fresh container.
+Generate Debian package inside a fresh container using bloom and fakeroot.
 
 options:
   -h, --help            show this help message and exit
@@ -204,7 +204,7 @@ options:
 ```
 
 By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
-This can be overwritten with the option `--ros-distro` allowing one to compile for a different ROS distribution than the one associated with the host OS.
+This can be overwritten with the option `--ros-distro` allowing one to release for a different ROS distribution than the one associated with the host OS.
 
 ## Use cases
 The colcon `in-container` extension can be used to:
