@@ -12,9 +12,11 @@ debian
 distro
 fakeroot
 filepath
+firewalld
 frontend
 functools
 github
+howto
 https
 initialised
 initialising
