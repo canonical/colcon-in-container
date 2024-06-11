@@ -17,8 +17,8 @@ pip3 install -U git+https://github.com/canonical/colcon-in-container
 sudo snap install lxd
 lxd init --auto
 ```
-> :warning: If you have Docker installed, make sure to
-> [prevent connectivity issue with LXD and Docker](https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker)
+> :warning: If you have Docker installed,
+> [mind that it causes connectivity issues](https://documentation.ubuntu.com/lxd/en/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker)
 
 - Then call colcon with the build-in-container verb:
 ```
