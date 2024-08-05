@@ -69,7 +69,7 @@ class TestInContainerVerb(InContainer):
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    ['exec', 'test']),
+                    {'exec', 'test'}),
             partial(self._colcon_test, args.colcon_test_args)]
         for command in commands:
             exit_code = command()

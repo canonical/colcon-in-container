@@ -67,11 +67,11 @@ class BuildInContainerVerb(InContainer):
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    ['build',
+                    {'build',
                      'buildtool',
                      'build_export',
                      'buildtool_export',
-                     'test']),
+                     'test'}),
             partial(self._colcon_build, args.colcon_build_args)]
         for command in commands:
             exit_code = command()

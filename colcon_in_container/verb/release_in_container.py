@@ -124,11 +124,11 @@ class ReleaseInContainerVerb(InContainer):
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    ['build',
+                    {'build',
                      'buildtool',
                      'build_export',
                      'buildtool_export',
-                     'test']),
+                     'test'}),
             partial(self._bloom_generate, package_name, args.bloom_generator),
             partial(self._generate_binary, package_name),
             partial(self._save_results, package_name)]
