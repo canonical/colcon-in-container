@@ -127,10 +127,11 @@ class TestInContainerVerb(InContainer):
             if context.args.debug:
                 logger.warn('Debug was selected, entering the instance.')
                 self.provider.shell()
-            sys.exit(1)
-        elif context.args.shell_after:
+        else:
+            logger.info('Successfully tested workspace in container.')
+
+        if context.args.shell_after:
             logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
 
-        logger.info('Successfully tested workspace in container.')
         return exit_code
