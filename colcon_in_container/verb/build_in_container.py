@@ -67,11 +67,11 @@ class BuildInContainerVerb(InContainer):
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    ['build',
+                    {'build',
                      'buildtool',
                      'build_export',
                      'buildtool_export',
-                     'test']),
+                     'test'}),
             partial(self._colcon_build, args.colcon_build_args)]
         for command in commands:
             exit_code = command()
@@ -119,11 +119,15 @@ class BuildInContainerVerb(InContainer):
                 self.provider.upload_package(package.path)
             exit_code = self._build(context.args)
 
-        if exit_code and context.args.debug:
-            logger.error(f'Build failed with error code {exit_code}.')
-            logger.warn('Debug was selected, entering the instance.')
-            self.provider.shell()
-        elif context.args.shell_after:
+        if exit_code != 0:
+            logger.error(f'Build failed with exit code {exit_code}. ')
+            if context.args.debug:
+                logger.warn('Debug was selected, entering the instance.')
+                self.provider.shell()
+        else:
+            logger.info('Successfully built workspace in container.')
+
+        if context.args.shell_after:
             logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
 

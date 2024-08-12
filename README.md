@@ -45,7 +45,7 @@ See the [usage](#usage) section for advanced information on installation and too
 - Start an ephemeral `LXD` container
 - Install a fresh ROS 2
 - Upload your workspace as well as your `build_in_container` and `install_in_container/` directories inside the container
-- Install your test time your rosdep dependencies (make sure to keep your `package.xml` updated!)
+- Install your test time rosdep dependencies (make sure to keep your `package.xml` updated!)
 - Test you workspace inside the container
 - Download the test results directory of the built workspace on your host under: `test_results_in_container/`
 

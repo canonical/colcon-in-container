@@ -69,7 +69,7 @@ class TestInContainerVerb(InContainer):
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    ['exec', 'test']),
+                    {'exec', 'test'}),
             partial(self._colcon_test, args.colcon_test_args)]
         for command in commands:
             exit_code = command()
@@ -122,11 +122,15 @@ class TestInContainerVerb(InContainer):
 
             exit_code = self._test(context.args)
 
-        if exit_code and context.args.debug:
-            logger.error(f'Test failed with error code {exit_code}.')
-            logger.warn('Debug was selected, entering the instance.')
-            self.provider.shell()
-        elif context.args.shell_after:
+        if exit_code != 0:
+            logger.error(f'Test failed with exit code {exit_code}. ')
+            if context.args.debug:
+                logger.warn('Debug was selected, entering the instance.')
+                self.provider.shell()
+        else:
+            logger.info('Successfully tested workspace in container.')
+
+        if context.args.shell_after:
             logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
 
