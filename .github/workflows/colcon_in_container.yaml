@@ -58,7 +58,7 @@ jobs:
       - name: Colcon build in container
         run: |
           cd ros_ws
-          colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
+          sudo colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: Colcon build in container verify files
         run: |
           cd ros_ws
