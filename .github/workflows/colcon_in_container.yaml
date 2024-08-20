@@ -59,7 +59,7 @@ jobs:
         run: |
           cd ros_ws
           snap info multipass
-          snap logs -n 100 multipass
+          sudo snap logs -n 100 multipass
           colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: Colcon build in container verify files
         run: |
