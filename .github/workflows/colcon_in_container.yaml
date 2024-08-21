@@ -61,6 +61,7 @@ jobs:
           cat /etc/group
           groups
           sudo usermod -a -G sudo $USER
+          su - $USER
           groups
           colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
       - name: Colcon build in container verify files
