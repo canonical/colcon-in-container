@@ -58,10 +58,8 @@ jobs:
       - name: Colcon build in container
         run: |
           cd ros_ws
-          ls -lah /var/snap/multipass/common/
           cat /etc/group
           groups
-          echo $USER
           sudo usermod -a -G sudo $USER
           groups
           colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
