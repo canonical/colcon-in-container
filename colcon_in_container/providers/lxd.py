@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import jinja2
 import json
 import os
 from platform import system
@@ -20,6 +21,7 @@ import shutil
 import stat
 import subprocess
 from typing import Any, Dict
+
 
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
@@ -29,6 +31,7 @@ from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions as pylxd_exceptions
 
 
+
 def _is_lxd_installed():
     return shutil.which('lxd') is not None
 
@@ -36,7 +39,7 @@ def _is_lxd_installed():
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
-    def __init__(self, ros_distro):  # noqa: D107
+    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
         super().__init__(ros_distro)
         if system() != 'Linux':
             raise exceptions.ProviderDoesNotSupportHostOSError(
@@ -78,12 +81,8 @@ class LXDClient(Provider):
             'ephemeral': True,
             'config': {},
         }
-        config_directory = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'config')
-        cloud_init_file = os.path.join(
-            config_directory, 'cloud-init.yaml')
-        with open(cloud_init_file, 'r') as f:
-            config['config']['user.user-data'] = f.read()
+        config['config']['user.user-data'] = self._render_jinja_template(pro_token)
+        logger.error(config['config']['user.user-data'])
 
         if self.lxd_client.instances.exists(self.instance_name):
             previous_instance = self.lxd_client.instances.get(
