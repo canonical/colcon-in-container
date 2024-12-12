@@ -27,6 +27,7 @@ from colcon_in_container.providers._helper \
     import host_architecture
 from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions as pylxd_exceptions
+import jinja2
 
 
 def _is_lxd_installed():

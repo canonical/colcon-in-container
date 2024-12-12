@@ -26,6 +26,7 @@ from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument,\
+    add_pro_argument,\
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
@@ -52,6 +53,7 @@ class BuildInContainerVerb(InContainer):
 
         add_instance_argument(parser)
         add_packages_arguments(parser)
+        add_pro_argument(parser)
 
     def _colcon_build(self, colcon_build_args):
         logger.info(f'building workspace with args: {colcon_build_args}')

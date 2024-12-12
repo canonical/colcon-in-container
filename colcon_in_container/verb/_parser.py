@@ -68,3 +68,11 @@ def add_instance_argument(parser):
         default='lxd',
         help='Environment provider.'
     )
+
+def add_pro_argument(parser):
+    """Add the Ubuntu Pro token arguments to the parser."""
+    parser.add_argument(
+        '--pro',
+        type=str,
+        help='Ubuntu Pro token to enable inside the instance.',
+    )
