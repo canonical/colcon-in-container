@@ -17,7 +17,6 @@ from platform import processor
 
 
 _ros2_ubuntu_distro = {'rolling': 'noble',
-                       'iron': 'jammy',
                        'humble': 'jammy',
                        'jazzy': 'noble'}
 
