@@ -53,17 +53,6 @@ class ReleaseInContainerVerb(InContainer):
             help='Pass arguments to the bloom-generate command.',
         )
 
-    def _upload_selected_packages(self, package_decorators) -> List[str]:
-        """Upload selected packages in the instance."""
-        package_names = []
-        for decorator in package_decorators:
-            package = decorator.descriptor
-            if not decorator.selected:
-                continue
-            self.provider.upload_package(package.path)
-            package_names.append(package.name)
-        return package_names
-
     def _install_bloom_dependencies(self, ros_distro):
         """Install bloom dependencies in the instance.
 
