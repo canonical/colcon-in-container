@@ -35,6 +35,7 @@ from colcon_in_container.verb.in_container import InContainer
 class ReleaseInContainerVerb(InContainer):
     """Build a Debian package inside a fresh container."""
 
+
     def __init__(self):  # noqa: D107
         super().__init__()
 
@@ -92,7 +93,8 @@ class ReleaseInContainerVerb(InContainer):
             f'mkdir -p /ws/release/{package_name}',
             f'mv /ws/src/{package_name}/debian /ws/release/{package_name}',
             f'mv /ws/src/*.deb /ws/release/{package_name}',
-            f'mv /ws/src/*.ddeb /ws/release/{package_name}'])
+            # not every package have .ddeb file
+            f'mv /ws/src/*.ddeb /ws/release/{package_name} || true'])
 
     def _add_colcon_ignore(self):
         """Add COLCON_IGNORE to the results.
