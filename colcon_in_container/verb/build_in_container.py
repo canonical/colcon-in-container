@@ -25,7 +25,7 @@ from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_instance_argument, add_ros_distro_argument,\
+    add_instance_argument, add_ros_distro_argument, \
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
