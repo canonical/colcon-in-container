@@ -14,6 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABC
+from typing import List
 
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
@@ -30,3 +31,17 @@ class InContainer(ABC, VerbExtensionPoint):
         self.host_test_results_folder = 'test_results_in_container'
         self.host_release_in_container_folder = 'release_in_container'
         self.instance_workspace_path = '/ws/'
+
+    def _upload_selected_packages(self, package_decorators) -> List[str]:
+        """Upload selected packages in the instance.
+
+        Returns the list of uploaded packages.
+        """
+        package_names = []
+        for decorator in package_decorators:
+            package = decorator.descriptor
+            if not decorator.selected:
+                continue
+            self.provider.upload_package(package.name, package.path)
+            package_names.append(package.name)
+        return package_names
