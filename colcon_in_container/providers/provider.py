@@ -96,9 +96,8 @@ class Provider(ABC):
         """Copy data from the instance to the host."""
         pass
 
-    def upload_package(self, package_path):
+    def upload_package(self, package_name, package_path):
         """Upload package to instance workspace."""
-        package_name = os.path.basename(package_path)
         instance_package_path = f'/ws/src/{package_name}'
         self.upload_directory(host_path=package_path,
                               instance_path=instance_package_path)

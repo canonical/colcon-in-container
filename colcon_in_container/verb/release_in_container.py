@@ -26,7 +26,7 @@ from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_instance_argument, add_ros_distro_argument,\
+    add_instance_argument, add_ros_distro_argument, \
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
@@ -52,17 +52,6 @@ class ReleaseInContainerVerb(InContainer):
             required=False,
             help='Pass arguments to the bloom-generate command.',
         )
-
-    def _upload_selected_packages(self, package_decorators) -> List[str]:
-        """Upload selected packages in the instance."""
-        package_names = []
-        for decorator in package_decorators:
-            package = decorator.descriptor
-            if not decorator.selected:
-                continue
-            self.provider.upload_package(package.path)
-            package_names.append(package.name)
-        return package_names
 
     def _install_bloom_dependencies(self, ros_distro):
         """Install bloom dependencies in the instance.
@@ -103,7 +92,8 @@ class ReleaseInContainerVerb(InContainer):
             f'mkdir -p /ws/release/{package_name}',
             f'mv /ws/src/{package_name}/debian /ws/release/{package_name}',
             f'mv /ws/src/*.deb /ws/release/{package_name}',
-            f'mv /ws/src/*.ddeb /ws/release/{package_name}'])
+            # not every package have .ddeb file
+            f'mv /ws/src/*.ddeb /ws/release/{package_name} || true'])
 
     def _add_colcon_ignore(self):
         """Add COLCON_IGNORE to the results.

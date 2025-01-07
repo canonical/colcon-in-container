@@ -114,11 +114,7 @@ class BuildInContainerVerb(InContainer):
                                       recursive_categories=('run', ))
             logger.info(f'Discovered {len(decorators)} packages, '
                         'uploading them in the instance')
-            for decorator in decorators:
-                package = decorator.descriptor
-                if not decorator.selected:
-                    continue
-                self.provider.upload_package(package.path)
+            self._upload_selected_packages(decorators)
             exit_code = self._build(context.args)
 
         if exit_code != 0:
