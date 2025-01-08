@@ -99,7 +99,9 @@ class BuildInContainerVerb(InContainer):
             sys.exit(1)
 
         self.provider = ProviderFactory.create(context.args.provider,
-                                               context.args.ros_distro)
+                                               context.args.ros_distro,
+                                               context.args.pro)
+
         try:
             self.provider.wait_for_install()
         except provider_exceptions.CloudInitError as e:

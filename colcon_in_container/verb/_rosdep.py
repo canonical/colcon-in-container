@@ -16,6 +16,7 @@
 from typing import Optional, Set
 
 from colcon_in_container.logging import logger
+from colcon_in_container.verb._parser import _eol_ros_distro_choices
 
 
 class Rosdep(object):
@@ -31,7 +32,10 @@ class Rosdep(object):
     def update(self):
         """Call rosdep update."""
         logger.info('Updating rosdep')
-        return self.provider.execute_command(['rosdep', 'update'])
+        commands = ['rosdep', 'update']
+        if self.ros_distro in _eol_ros_distro_choices:
+            commands.append('--include-eol-distros')
+        return self.provider.execute_command(commands)
 
     def install(self, dependency_types: Optional[Set[str]] = None):
         """Call rosdep install on the provided dependency_types."""

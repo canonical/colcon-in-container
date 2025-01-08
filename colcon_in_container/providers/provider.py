@@ -14,7 +14,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
+import jinja2
 import os
+from platform import machine
 import shutil
 
 from colcon_in_container.logging import logger
@@ -38,6 +40,29 @@ class Provider(ABC):
     def _clean_instance(self):
         """Clean the created instance."""
         pass
+
+    def _render_jinja_template(self, pro_token):
+        config_directory = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), 'config')
+        cloud_init_file = os.path.join(
+            config_directory, 'cloud-init.yaml')
+        with open(cloud_init_file, 'r') as f:
+            config = f.read()
+
+        template = jinja2.Environment().from_string(source=config)
+        host_architecture = machine()
+        # support for windows 10 and 11 returning all kinds of values
+        # bugs.python.org/issue7146
+        if host_architecture in ['AMD64', 'x86_64', 'x64']:
+            host_architecture = 'amd64'
+        elif host_architecture in ['ARM64', 'aarch64']:
+            host_architecture = 'arm64'
+        configuration = {'architecture': host_architecture,
+                    'distro_release': self.ubuntu_distro}
+        if pro_token:
+            configuration['pro_token'] = pro_token
+
+        return template.render(configuration)
 
     def wait_for_install(self):
         """Wait for installation to be done."""

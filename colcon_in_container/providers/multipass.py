@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from platform import machine
 import shutil
 import subprocess
 from typing import List
@@ -22,7 +21,6 @@ from typing import List
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers.provider import Provider
-import jinja2
 
 
 def _get_multipass_path():
@@ -32,7 +30,7 @@ def _get_multipass_path():
 class MultipassClient(Provider):
     """Multipass client interacting with the Multipass socket."""
 
-    def __init__(self, ros_distro):  # noqa: D107
+    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
         super().__init__(ros_distro)
 
         self.multipass_path = _get_multipass_path()
@@ -41,7 +39,7 @@ class MultipassClient(Provider):
                 'Multipass is not installed.'
                 'Please run `sudo snap install multipass`')
 
-        self._render_jinja_template()
+        self._render_jinja_template(pro_token)
 
         if self._run(['info', self.instance_name]).returncode == 0:
             self._clean_instance()
@@ -62,28 +60,8 @@ class MultipassClient(Provider):
              '--timeout', '1000'], check=True)
         self.execute_command(['cloud-init', 'status', '--wait'])
 
-    def _render_jinja_template(self):
-        config_directory = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'config')
-        cloud_init_file = os.path.join(
-            config_directory, 'cloud-init.yaml')
-        with open(cloud_init_file, 'r') as f:
-            config = f.read()
-
-        template = jinja2.Environment().from_string(source=config)
-        host_architecture = machine()
-        # support for windows 10 and 11 returning all kinds of values
-        # bugs.python.org/issue7146
-        if host_architecture in ['AMD64', 'amd64', 'x64']:
-            host_architecture = 'x86_64'
-        elif host_architecture in ['ARM64', 'arm64']:
-            host_architecture = 'aarch64'
-
-        cloud_init_content = template.render(
-            {'v1': {'machine': host_architecture,
-                    'distro_release': self.ubuntu_distro}}
-        )
-
+    def _render_and_write_jinja_template(self, pro_token):
+        cloud_init_content = self._render_jinja_template(pro_token)
         self.rendered_cloud_init_path = '.colcon-in-container-cloud-init.yaml'
         with open(self.rendered_cloud_init_path, 'w') as f:
             written = f.write(cloud_init_content)
