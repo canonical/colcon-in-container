@@ -37,7 +37,9 @@ class Rosdep(object):
             commands.append('--include-eol-distros')
         return self.provider.execute_command(commands)
 
-    def install(self, workspace='/root/ws/src', dependency_types: Optional[Set[str]] = None):
+    def install(self,
+                workspace='/root/ws/src',
+                dependency_types: Optional[Set[str]] = None):
         """Call rosdep install on the provided dependency_types."""
         logger.info('Installing dependencies with rosdep')
         commands = [

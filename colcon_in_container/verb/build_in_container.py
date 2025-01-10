@@ -25,8 +25,8 @@ from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_instance_argument, add_ros_distro_argument,\
-    add_pro_arguments,\
+    add_instance_argument, add_pro_arguments, \
+    add_ros_distro_argument, \
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
@@ -119,7 +119,7 @@ class BuildInContainerVerb(InContainer):
             logger.info(f'Discovered {len(decorators)} packages, '
                         'uploading them in the instance')
             self._upload_selected_packages(decorators)
-            
+
             exit_code = self._build(context.args)
             logger.error(f'here is the build exit code: {exit_code}')
 

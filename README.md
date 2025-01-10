@@ -121,7 +121,8 @@ Usage help:
 ```
 $ colcon build-in-container --help
 
-usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
+usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--shell-after]
+[--provider {lxd,multipass}] [--pro PRO] [--auto-deps-management]
 
 Call a colcon build command inside a fresh container.
 
@@ -134,6 +135,10 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
+  --pro PRO             Ubuntu Pro token to enable inside the instance.
+  --auto-deps-management
+                        Automatically manages missing dependencies.This will retrieve, install and source the ROS
+                        dependencies of the workspace not available in ROS ESM
 ```
 
 By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
@@ -155,7 +160,8 @@ Usage help:
 ```
 $ colcon test-in-container --help
 
-usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
+usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--shell-after]
+[--provider {lxd,multipass}] [--pro PRO] [--auto-deps-management]
 
 Call a colcon test command inside a fresh container.
 
@@ -169,6 +175,10 @@ options:
   --shell-after         Shell into the environment at the end of the build or if there is an
                         error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
+  --pro PRO             Ubuntu Pro token to enable inside the instance.
+  --auto-deps-management
+                        Automatically manages missing dependencies.This will retrieve, install and source the ROS
+                        dependencies of the workspace not available in ROS ESM
 ```
 
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
@@ -190,7 +200,8 @@ Usage help:
 ```
 $ colcon release-in-container --help
 
-usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug] [--shell-after] [--paths [PATH [PATH ...]]]
+usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug]
+[--shell-after] [--provider {lxd,multipass}] [--pro PRO] [--auto-deps-management]
 
 Generate Debian package inside a fresh container using bloom and fakeroot.
 
@@ -204,10 +215,40 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
+  --pro PRO             Ubuntu Pro token to enable inside the instance.
+  --auto-deps-management
+                        Automatically manages missing dependencies.This will retrieve, install and source the ROS
+                        dependencies of the workspace not available in ROS ESM
 ```
 
 By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
 This can be overwritten with the option `--ros-distro` allowing one to release for a different ROS distribution than the one associated with the host OS.
+
+## ROS beyond EoL
+
+For ROS distribution beyond EoL, `colcon in-container` integrates [Ubuntu Pro](https://ubuntu.com/pro) and [ROS ESM]
+(https://ubuntu.com/robotics/ros-esm) so you can benefit from security updates for 12 years!
+
+While EoL distro are limited in `colcon in-container` to use `pro`, you can get a free token on the
+[Ubuntu Pro dashboard](https://ubuntu.com/pro/dashboard).
+
+### `--pro`
+
+This flag will let you pass the mandatory Ubuntu Pro token and automatically enable
+[Ubuntu Pro](https://ubuntu.com/pro) and [ROS ESM](https://ubuntu.com/robotics/ros-esm).
+
+### `--auto-deps-management`
+
+This flag will enable the automatic dependencies management.
+
+ROS ESM covers up to the meta-package `ros-$DISTRO-ros-base`. Some ROS packages originally present in the ROS 
+repository might not be present in your workspace.
+With the help of the tool [`ros-esm-dependencies-diff-generator`](https://snapcraft.io/ros-esm-dependencies-diff-generator),
+the `--auto-deps-management` flag will take care of finding the dependencies, and installing them within the 
+isolated environment.
+
+At the end, the `build/` and `install/` directories of the `ws_underlay` containing the dependencies are downloaded on
+the host under: `build_in_container_underlay` and `install_in_container_underlay/`
 
 ## Use cases
 The colcon `in-container` extension can be used to:

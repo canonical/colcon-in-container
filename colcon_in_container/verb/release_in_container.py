@@ -26,11 +26,11 @@ from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_instance_argument, add_ros_distro_argument, \
-    add_pro_arguments, \
+    add_instance_argument, add_pro_arguments, \
+    add_ros_distro_argument, \
     verify_ros_distro_in_parsed_args
+from colcon_in_container.verb._pro import auto_ros_esm_dependency_management
 from colcon_in_container.verb._rosdep import Rosdep
-from colcon_in_container.verb._pro import auto_ROS_ESM_dependency_managment
 from colcon_in_container.verb.in_container import InContainer
 
 
@@ -40,10 +40,10 @@ class ReleaseInContainerVerb(InContainer):
     def __init__(self):  # noqa: D107
         super().__init__()
         self.dependency_types = {'build',
-                     'buildtool',
-                     'build_export',
-                     'buildtool_export',
-                     'test'}
+                                 'buildtool',
+                                 'build_export',
+                                 'buildtool_export',
+                                 'test'}
 
     def add_arguments(self, *, parser):  # noqa: D102
 
@@ -98,10 +98,13 @@ class ReleaseInContainerVerb(InContainer):
         logger.info(f'Saving results for {package_name}')
         return self.provider.execute_commands([
             f'mkdir -p {self.instance_workspace_path}/release/{package_name}',
-            f'mv {self.instance_workspace_path}/src/{package_name}/debian {self.instance_workspace_path}/release/{package_name}',
-            f'mv {self.instance_workspace_path}/src/*.deb {self.instance_workspace_path}/release/{package_name}',
+            f'mv {self.instance_workspace_path}/src/{package_name}/debian '
+            '{self.instance_workspace_path}/release/{package_name}',
+            f'mv {self.instance_workspace_path}/src/*.deb '
+            '{self.instance_workspace_path}/release/{package_name}',
             # not every package have .ddeb file
-            f'mv {self.instance_workspace_path}/src/*.ddeb {self.instance_workspace_path}/release/{package_name} || true'])
+            f'mv {self.instance_workspace_path}/src/*.ddeb '
+            '{self.instance_workspace_path}/release/{package_name} || true'])
 
     def _add_colcon_ignore(self):
         """Add COLCON_IGNORE to the results.
@@ -182,11 +185,11 @@ class ReleaseInContainerVerb(InContainer):
             if not package_names:
                 raise FileNotFoundError('No package found for release')
 
-            if context.args.pro and context.args.auto_deps_managment:
-                auto_ROS_ESM_dependency_managment(self.provider,
-                                              self.rosdep,
-                                              context.args.ros_distro,
-                                              self.dependency_types)
+            if context.args.pro and context.args.auto_deps_management:
+                auto_ros_esm_dependency_management(self.provider,
+                                                   self.rosdep,
+                                                   context.args.ros_distro,
+                                                   self.dependency_types)
 
             for package in package_names:
                 try:

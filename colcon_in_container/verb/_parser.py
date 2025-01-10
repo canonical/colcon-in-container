@@ -30,7 +30,7 @@ def add_ros_distro_argument(parser):
         '--ros-distro',
         metavar='ROS_DISTRO',
         type=str,
-        choices=_ros_distro_choices+_eol_ros_distro_choices,
+        choices=_ros_distro_choices + _eol_ros_distro_choices,
         default=ros_distro_env,
         required=not ros_distro_env,
         help='ROS version, can also be set by the environment variable '
@@ -42,16 +42,17 @@ def verify_ros_distro_in_parsed_args(args):
     if args.ros_distro not in _ros_distro_choices:
         if args.ros_distro in _eol_ros_distro_choices:
             if not args.pro:
-                logger.error(f'The ros-distro is set to the EoL distro {args.ros_distro} '
-                     'without any Ubuntu Pro token provided.'
-                     'Please provide the `--pro` token argument'
-                     'in order to use EoL distro.')
+                logger.error('The ros-distro is set to the EoL '
+                             'distro {args.ros_distro} '
+                             'without any Ubuntu Pro token provided.'
+                             'Please provide the `--pro` token argument'
+                             'in order to use EoL distro.')
                 return False
         else:
             logger.error(f'The ROS_DISTRO={args.ros_distro} '
-                     'environment variable is not a viable '
-                     '--ros-distro argument. See --ros-distro to set '
-                     'a valid ros-distro')
+                         'environment variable is not a viable '
+                         '--ros-distro argument. See --ros-distro to set '
+                         'a valid ros-distro')
             return False
     return True
 
@@ -78,6 +79,7 @@ def add_instance_argument(parser):
         help='Environment provider.'
     )
 
+
 def add_pro_arguments(parser):
     """Add the Ubuntu Pro token arguments to the parser."""
     parser.add_argument(
@@ -87,9 +89,9 @@ def add_pro_arguments(parser):
     )
 
     parser.add_argument(
-        '--auto-deps-managment',
+        '--auto-deps-management',
         action='store_true',
         help='Automatically manages missing dependencies.'
              'This will retrieve, install and source the '
-             'ROS dependencies of the workspace not availble in ROS ESM',
+             'ROS dependencies of the workspace not available in ROS ESM',
     )

@@ -17,32 +17,47 @@ from typing import Optional, Set
 
 from colcon_in_container.logging import logger
 
+
 underlay_workspace_path = '/root/ws_underlay/'
 
-def auto_ROS_ESM_dependency_managment(provider, rosdep, ros_distro, dependency_types: Optional[Set[str]] = None):
+
+def auto_ros_esm_dependency_management(provider,
+                                       rosdep,
+                                       ros_distro,
+                                       dependency_types: Optional[Set[str]]
+                                       = None):
+    """Automatically manages ROS ESM dependencies.
+
+    Detect the dependencies of the workspace not present in ROS ESM.
+    The dependencies will then be installed from sources.
+    """
     # Create the second workspace
     def _create_underlay_workspace():
         exit_code = provider.execute_commands([
-            f'ros-esm-dependencies-diff-generator --rosdistro { ros_distro } -o /root/dependencies.rosinstall --source /root/ws/src/',
-            f'cat /root/dependencies.rosinstall',
-            f'vcs import --shallow {underlay_workspace_path}/src < /root/dependencies.rosinstall'])
+            f'ros-esm-dependencies-diff-generator --rosdistro {ros_distro} '
+            '-o /root/dependencies.rosinstall --source /root/ws/src/',
+            'cat /root/dependencies.rosinstall',
+            f'vcs import --shallow {underlay_workspace_path}/src < '
+            '/root/dependencies.rosinstall'])
         if exit_code:
             raise SystemError('Failed to create the underlay workspace '
                               f'with exit code {exit_code}')
 
     def _build_dependencies():
-        exit_code = rosdep.install(workspace=f'{underlay_workspace_path}/src', dependency_types=dependency_types)
+        exit_code = rosdep.install(
+            workspace=f'{underlay_workspace_path}/src',
+            dependency_types=dependency_types)
         if exit_code:
-            raise SystemError('Failed to rosdep install underlay workspace dependencies '
-                              f'with exit code {exit_code}')
+            raise SystemError('Failed to rosdep install underlay '
+                              f'workspace dependencies with '
+                              f'exit code {exit_code}')
         exit_code = provider.execute_commands([
             f'cd {underlay_workspace_path}',
             f'colcon --log-level={logger.getEffectiveLevel()} '
             f'build --cmake-args -DCMAKE_BUILD_TYPE=Release'])
         if exit_code:
-            raise SystemError('Failed to build underlay workspace dependencies '
-                              f'with exit code {exit_code}')
+            raise SystemError('Failed to build underlay workspace '
+                              f'dependencies with exit code {exit_code}')
 
     _create_underlay_workspace()
     _build_dependencies()
-
