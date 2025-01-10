@@ -78,10 +78,18 @@ def add_instance_argument(parser):
         help='Environment provider.'
     )
 
-def add_pro_argument(parser):
+def add_pro_arguments(parser):
     """Add the Ubuntu Pro token arguments to the parser."""
     parser.add_argument(
         '--pro',
         type=str,
         help='Ubuntu Pro token to enable inside the instance.',
+    )
+
+    parser.add_argument(
+        '--auto-deps-managment',
+        action='store_true',
+        help='Automatically manages missing dependencies.'
+             'This will retrieve, install and source the '
+             'ROS dependencies of the workspace not availble in ROS ESM',
     )

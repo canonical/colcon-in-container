@@ -123,7 +123,7 @@ class Provider(ABC):
 
     def upload_package(self, package_name, package_path):
         """Upload package to instance workspace."""
-        instance_package_path = f'/ws/src/{package_name}'
+        instance_package_path = f'/root/ws/src/{package_name}'
         self.upload_directory(host_path=package_path,
                               instance_path=instance_package_path)
 

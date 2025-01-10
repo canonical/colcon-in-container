@@ -26,9 +26,10 @@ from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
     add_instance_argument, add_ros_distro_argument, \
-    add_pro_argument,\
+    add_pro_arguments,\
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
+from colcon_in_container.verb._pro import auto_ROS_ESM_dependency_managment
 from colcon_in_container.verb.in_container import InContainer
 
 
@@ -39,6 +40,7 @@ class TestInContainerVerb(InContainer):
 
     def __init__(self):  # noqa: D107
         super().__init__()
+        self.dependency_types = {'exec', 'test'}
 
     def add_arguments(self, *, parser):  # noqa: D102
 
@@ -55,7 +57,7 @@ class TestInContainerVerb(InContainer):
 
         add_instance_argument(parser)
         add_packages_arguments(parser)
-        add_pro_argument(parser)
+        add_pro_arguments(parser)
 
     def _colcon_test(self, colcon_test_args):
         logger.info(f'testing workspace with args: {colcon_test_args}')
@@ -70,8 +72,9 @@ class TestInContainerVerb(InContainer):
         result test directories.
         """
         commands: List[Callable[[], int]] = [
+            partial(self._ros_esm, args),
             partial(self.rosdep.install,
-                    {'exec', 'test'}),
+                    dependency_types=self.dependency_types),
             partial(self._colcon_test, args.colcon_test_args)]
         for command in commands:
             exit_code = command()
@@ -93,7 +96,8 @@ class TestInContainerVerb(InContainer):
             sys.exit(1)
 
         self.provider = ProviderFactory.create(context.args.provider,
-                                               context.args.ros_distro)
+                                               context.args.ros_distro,
+                                               context.args.pro)
 
         try:
             self.provider.wait_for_install()
