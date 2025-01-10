@@ -81,7 +81,6 @@ class LXDClient(Provider):
         }
         config['config']['user.user-data'] \
             = self._render_jinja_template(pro_token)
-        logger.error(config['config']['user.user-data'])
 
         if self.lxd_client.instances.exists(self.instance_name):
             previous_instance = self.lxd_client.instances.get(

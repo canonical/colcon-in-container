@@ -27,15 +27,15 @@ class Rosdep(object):
         self.provider = provider
         self.ros_distro = ros_distro
         logger.info('Initialising rosdep')
-        self.provider.execute_command(['rosdep', 'init'])
+        self.provider.execute_commands(['rosdep init'])
 
     def update(self):
         """Call rosdep update."""
         logger.info('Updating rosdep')
-        commands = ['rosdep', 'update']
+        command = 'rosdep update'
         if self.ros_distro in _eol_ros_distro_choices:
-            commands.append('--include-eol-distros')
-        return self.provider.execute_command(commands)
+            command += ' --include-eol-distros'
+        return self.provider.execute_commands([command])
 
     def install(self,
                 workspace='/root/ws/src',
