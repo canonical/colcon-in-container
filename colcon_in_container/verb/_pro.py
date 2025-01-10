@@ -18,31 +18,46 @@ from typing import Optional, Set
 from colcon_in_container.logging import logger
 
 
-class Pro(object):
-    """Pro tool class wrapper to call pro in a provider."""
+underlay_workspace_path = '/root/ws_underlay/'
 
-    def __init__(self, provider, token):
-        """Initialize rosdep and call rosdep init."""
-        self.provider = provider
-        logger.info('Attaching Pro token')
-        #TODO We should not let people enable pro when it's not available
-        #TODO We should not enable ROS 2 sources that are enabled in the cloud-init
-        # Should we use a different jinja or make it more complex?
-        #TODO do we want to integrate rosinstall_generator?
-        
-        self.provider.execute_command(['pro', 'attach', token])
 
-    def enable(self):
-        """Call Pro enable for ROS ESM."""
-        logger.info('Enabling ROS ESM')
-        commands = [
-            'pro enable esm-infra',
-            'pro enable esm-apps',
-            'apt-get update',
-            'apt-get upgrade -y',
-            'pro enable ros --beta',
-            #TODO This should depends on a flag
-            'pro enable ros-updates --beta' 
-            
-        ]
-        return self.provider.execute_commands(commands)
+def auto_ros_esm_dependency_management(provider,
+                                       rosdep,
+                                       ros_distro,
+                                       dependency_types: Optional[Set[str]]
+                                       = None):
+    """Automatically manages ROS ESM dependencies.
+
+    Detect the dependencies of the workspace not present in ROS ESM.
+    The dependencies will then be installed from sources.
+    """
+    # Create the second workspace
+    def _create_underlay_workspace():
+        exit_code = provider.execute_commands([
+            f'ros-esm-dependencies-diff-generator --rosdistro {ros_distro} '
+            '-o /root/dependencies.rosinstall --source /root/ws/src/',
+            'cat /root/dependencies.rosinstall',
+            f'vcs import --shallow {underlay_workspace_path}/src < '
+            '/root/dependencies.rosinstall'])
+        if exit_code:
+            raise SystemError('Failed to create the underlay workspace '
+                              f'with exit code {exit_code}')
+
+    def _build_dependencies():
+        exit_code = rosdep.install(
+            workspace=f'{underlay_workspace_path}/src',
+            dependency_types=dependency_types)
+        if exit_code:
+            raise SystemError('Failed to rosdep install underlay '
+                              f'workspace dependencies with '
+                              f'exit code {exit_code}')
+        exit_code = provider.execute_commands([
+            f'cd {underlay_workspace_path}',
+            f'colcon --log-level={logger.getEffectiveLevel()} '
+            f'build --cmake-args -DCMAKE_BUILD_TYPE=Release'])
+        if exit_code:
+            raise SystemError('Failed to build underlay workspace '
+                              f'dependencies with exit code {exit_code}')
+
+    _create_underlay_workspace()
+    _build_dependencies()

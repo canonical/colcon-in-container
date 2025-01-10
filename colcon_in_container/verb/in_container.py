@@ -18,6 +18,9 @@ from typing import List
 
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
+from colcon_in_container.verb._pro import \
+    auto_ros_esm_dependency_management, \
+    underlay_workspace_path
 
 
 class InContainer(ABC, VerbExtensionPoint):
@@ -28,9 +31,11 @@ class InContainer(ABC, VerbExtensionPoint):
         satisfies_version(VerbExtensionPoint.EXTENSION_POINT_VERSION, '^1.0')
         self.host_build_in_container_folder = 'build_in_container'
         self.host_install_in_container_folder = 'install_in_container'
+        self.host_build_underlay_folder = 'build_in_container_underlay'
+        self.host_install_underlay_folder = 'install_in_container_underlay'
         self.host_test_results_folder = 'test_results_in_container'
         self.host_release_in_container_folder = 'release_in_container'
-        self.instance_workspace_path = '/ws/'
+        self.instance_workspace_path = '/root/ws/'
 
     def _upload_selected_packages(self, package_decorators) -> List[str]:
         """Upload selected packages in the instance.
@@ -45,3 +50,19 @@ class InContainer(ABC, VerbExtensionPoint):
             self.provider.upload_package(package.name, package.path)
             package_names.append(package.name)
         return package_names
+
+    def _ros_esm(self, args):
+        if args.pro and args.auto_deps_management:
+            auto_ros_esm_dependency_management(self.provider,
+                                               self.rosdep,
+                                               args.ros_distro,
+                                               self.dependency_types)
+            self.provider.download_result(
+                result_path_in_instance=underlay_workspace_path
+                + 'install',
+                result_path_on_host=self.host_install_underlay_folder)
+            self.provider.download_result(
+                result_path_in_instance=underlay_workspace_path
+                + 'build',
+                result_path_on_host=self.host_build_underlay_folder
+            )

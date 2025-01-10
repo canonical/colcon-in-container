@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
-import jinja2
 import os
 from platform import machine
 import shutil
@@ -22,6 +21,7 @@ import shutil
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers._helper import get_ubuntu_distro
+import jinja2
 
 
 class Provider(ABC):
@@ -58,7 +58,7 @@ class Provider(ABC):
         elif host_architecture in ['ARM64', 'aarch64']:
             host_architecture = 'arm64'
         configuration = {'architecture': host_architecture,
-                    'distro_release': self.ubuntu_distro}
+                         'distro_release': self.ubuntu_distro}
         if pro_token:
             configuration['pro_token'] = pro_token
 
@@ -123,7 +123,7 @@ class Provider(ABC):
 
     def upload_package(self, package_name, package_path):
         """Upload package to instance workspace."""
-        instance_package_path = f'/ws/src/{package_name}'
+        instance_package_path = f'/root/ws/src/{package_name}'
         self.upload_directory(host_path=package_path,
                               instance_path=instance_package_path)
 

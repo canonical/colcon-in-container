@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import jinja2
 import json
 import os
 from platform import system
@@ -29,7 +28,6 @@ from colcon_in_container.providers._helper \
     import host_architecture
 from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions as pylxd_exceptions
-
 
 
 def _is_lxd_installed():
@@ -81,7 +79,8 @@ class LXDClient(Provider):
             'ephemeral': True,
             'config': {},
         }
-        config['config']['user.user-data'] = self._render_jinja_template(pro_token)
+        config['config']['user.user-data'] \
+            = self._render_jinja_template(pro_token)
         logger.error(config['config']['user.user-data'])
 
         if self.lxd_client.instances.exists(self.instance_name):

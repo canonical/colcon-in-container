@@ -39,7 +39,7 @@ class MultipassClient(Provider):
                 'Multipass is not installed.'
                 'Please run `sudo snap install multipass`')
 
-        self._render_jinja_template(pro_token)
+        self._render_and_write_jinja_template(pro_token)
 
         if self._run(['info', self.instance_name]).returncode == 0:
             self._clean_instance()
@@ -86,7 +86,7 @@ class MultipassClient(Provider):
     def execute_command(self, command: List[str]):
         """Execute the given command inside the instance."""
         completed_process = self._run(['exec', self.instance_name,
-                                       '--working-directory', '/ws',
+                                       '--working-directory', '/root/ws',
                                        '--', 'sudo', *command],
                                       capture_output=True)
 

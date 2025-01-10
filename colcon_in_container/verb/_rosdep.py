@@ -37,13 +37,15 @@ class Rosdep(object):
             commands.append('--include-eol-distros')
         return self.provider.execute_command(commands)
 
-    def install(self, dependency_types: Optional[Set[str]] = None):
+    def install(self,
+                workspace='/root/ws/src',
+                dependency_types: Optional[Set[str]] = None):
         """Call rosdep install on the provided dependency_types."""
         logger.info('Installing dependencies with rosdep')
         commands = [
             # Avoid rosdep/apt interactive shell error message
             'export DEBIAN_FRONTEND=noninteractive',
-            'rosdep install --from-paths /ws/src --ignore-src -y '
+            f'rosdep install --from-paths {workspace} --ignore-src -y '
             f'--rosdistro={self.ros_distro} '
         ]
         if dependency_types:

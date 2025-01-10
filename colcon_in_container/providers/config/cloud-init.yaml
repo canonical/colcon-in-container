@@ -33,11 +33,18 @@ write_files:
       if [ -f /opt/ros/*/setup.bash ]; then
         . /opt/ros/*/setup.bash
       fi
-      cd /ws
+      if [ -f /root/ws_underlay/install/setup.bash ]; then
+        . /root/ws_underlay/install/setup.bash
+      fi
+      cd /root/ws
     path: /root/.bashrc
     append: true
     defer: true
 runcmd:
  - [pip3, install, rosdep]
- - [mkdir, /ws]
+{% if pro_token %}
+ - [pip3, install , vcstool]
+ - [mkdir, -p, /root/ws_underlay/src]
+ {% endif %}
+ - [mkdir, /root/ws]
  
