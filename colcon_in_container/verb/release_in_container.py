@@ -99,12 +99,12 @@ class ReleaseInContainerVerb(InContainer):
         return self.provider.execute_commands([
             f'mkdir -p {self.instance_workspace_path}/release/{package_name}',
             f'mv {self.instance_workspace_path}/src/{package_name}/debian '
-            '{self.instance_workspace_path}/release/{package_name}',
+            f'{self.instance_workspace_path}/release/{package_name}',
             f'mv {self.instance_workspace_path}/src/*.deb '
-            '{self.instance_workspace_path}/release/{package_name}',
+            f'{self.instance_workspace_path}/release/{package_name}',
             # not every package have .ddeb file
             f'mv {self.instance_workspace_path}/src/*.ddeb '
-            '{self.instance_workspace_path}/release/{package_name} || true'])
+            f'{self.instance_workspace_path}/release/{package_name} || true'])
 
     def _add_colcon_ignore(self):
         """Add COLCON_IGNORE to the results.
