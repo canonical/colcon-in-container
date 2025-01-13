@@ -94,7 +94,8 @@ class LXDClient(Provider):
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
 
-    def _clean_instance(self):
+    def clean_instance(self):
+        """Clean the created instance."""
         if hasattr(self, 'instance') and self.instance:
             if self.instance.status == 'Running':
                 self.instance.stop(wait=True)

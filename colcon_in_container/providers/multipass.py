@@ -42,7 +42,7 @@ class MultipassClient(Provider):
         self._render_and_write_jinja_template(pro_token)
 
         if self._run(['info', self.instance_name]).returncode == 0:
-            self._clean_instance()
+            self.clean_instance()
 
         cpus = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_CPUS', default='2')
         mem = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_MEMORY', default='4G')
@@ -80,7 +80,8 @@ class MultipassClient(Provider):
         logger.debug(f'Executing on host: {" ".join(command)}')
         return subprocess.run(command, **kwargs)
 
-    def _clean_instance(self):
+    def clean_instance(self):
+        """Clean the created instance."""
         self._run(['delete', '--purge', self.instance_name])
 
     def execute_command(self, command: List[str]):

@@ -33,11 +33,8 @@ class Provider(ABC):
         self.ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.logger_instance = logger.getChild('instance')
 
-    def __del__(self):  # noqa: D105
-        self._clean_instance()
-
     @abstractmethod
-    def _clean_instance(self):
+    def clean_instance(self):
         """Clean the created instance."""
         pass
 
