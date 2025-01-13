@@ -47,7 +47,7 @@ write_files:
 runcmd:
  - [set, -x]
  - [mkdir, /root/ws]
- - [python3, -m, venv, /root/.venv]
+ - [python3, -m, venv, /root/.venv, --system-site-packages]
  - [., /root/.venv/bin/activate]
  - [pip3, install, rosdep]
 {% if pro_token %}
