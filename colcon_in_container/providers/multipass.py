@@ -86,7 +86,7 @@ class MultipassClient(Provider):
     def execute_command(self, command: List[str]):
         """Execute the given command inside the instance."""
         completed_process = self._run(['exec', self.instance_name,
-                                       '--working-directory', '/ws',
+                                       '--working-directory', '/root/ws',
                                        '--', 'sudo', *command],
                                       capture_output=True)
 
