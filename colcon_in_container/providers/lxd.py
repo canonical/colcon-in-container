@@ -97,7 +97,11 @@ class LXDClient(Provider):
     def _clean_instance(self):
         if hasattr(self, 'instance') and self.instance:
             if self.instance.status == 'Running':
-                self.instance.stop(wait=True)
+                try:
+                    self.instance.stop(wait=True)
+                # ignore urllib3 import error when garbage collected
+                except ImportError:
+                    pass
 
     def _is_lxd_initialised(self):
         devices = self.lxd_client.profiles.get('default').devices
