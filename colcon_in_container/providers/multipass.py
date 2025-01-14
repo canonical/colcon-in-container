@@ -81,7 +81,11 @@ class MultipassClient(Provider):
         return subprocess.run(command, **kwargs)
 
     def _clean_instance(self):
-        self._run(['delete', '--purge', self.instance_name])
+        try:
+            self._run(['delete', '--purge', self.instance_name])
+        # ignore logging NameError when garbage collected
+        except NameError:
+            pass
 
     def execute_command(self, command: List[str]):
         """Execute the given command inside the instance."""
