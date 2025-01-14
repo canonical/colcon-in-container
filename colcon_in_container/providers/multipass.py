@@ -108,7 +108,8 @@ class MultipassClient(Provider):
                 temporary_instance_path)
 
         command_result = self._run(['transfer', '--recursive', '--parents',
-                                    f'{self.instance_name}:{temporary_instance_path}',
+                                    f'{self.instance_name}:'
+                                    f'{temporary_instance_path}',
                                     host_path], check=True)
         if command_result.returncode:
             raise exceptions.FileNotFoundInInstanceError(instance_path)
