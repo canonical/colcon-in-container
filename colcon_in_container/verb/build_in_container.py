@@ -121,7 +121,6 @@ class BuildInContainerVerb(InContainer):
             self._upload_selected_packages(decorators)
 
             exit_code = self._build(context.args)
-            logger.error(f'here is the build exit code: {exit_code}')
 
         if exit_code != 0:
             logger.error(f'Build failed with exit code {exit_code}. ')
