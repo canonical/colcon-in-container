@@ -56,9 +56,9 @@ class InContainer(ABC, VerbExtensionPoint):
         if args.pro and args.auto_deps_management:
             try:
                 auto_ros_esm_dependency_management(self.provider,
-                                               self.rosdep,
-                                               args.ros_distro,
-                                               self.dependency_types)
+                                                   self.rosdep,
+                                                   args.ros_distro,
+                                                   self.dependency_types)
 
                 self.provider.download_result(
                     result_path_in_instance=underlay_workspace_path
@@ -73,5 +73,3 @@ class InContainer(ABC, VerbExtensionPoint):
                 logger.error(f'Failed top create underlay workspace: {e}')
                 return 1
         return 0
-
-
