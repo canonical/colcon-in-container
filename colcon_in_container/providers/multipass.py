@@ -105,7 +105,7 @@ class MultipassClient(Provider):
             f'mkdir -p {temporary_instance_path}'])
 
         move_return_code &= self.execute_command([
-            f'cp -r {instance_path} {temporary_instance_path}'])
+            f'cp -r {instance_path}/* {temporary_instance_path}'])
 
         if move_return_code:
             raise exceptions.FileNotFoundInInstanceError(
