@@ -217,4 +217,6 @@ class ReleaseInContainerVerb(InContainer):
             logger.info('Shell after was selected, entering the instance')
             self.provider.shell()
 
+        self.provider.clean_instance()
+
         sys.exit(0)
