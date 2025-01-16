@@ -100,8 +100,12 @@ class MultipassClient(Provider):
     def _copy_from_instance_to_host(self, *, instance_path, host_path):
         """Copy data from the instance to the host."""
         temporary_instance_path = f'/home/ubuntu/{instance_path}'
+
         move_return_code = self.execute_command([
-            f'mv {instance_path} {temporary_instance_path}'])
+            f'mkdir -p {temporary_instance_path}'])
+
+        move_return_code &= self.execute_command([
+            f'cp -r {instance_path} {temporary_instance_path}'])
 
         if move_return_code:
             raise exceptions.FileNotFoundInInstanceError(
@@ -160,6 +164,8 @@ class MultipassClient(Provider):
 
         move_return_code = self.execute_command([
             f'mv {temporary_instance_path}/* {instance_path}'])
+        move_return_code &= self.execute_command([
+            f'chown root:root -R {instance_path}'])
 
         if move_return_code:
             raise exceptions.FileNotFoundInInstanceError(

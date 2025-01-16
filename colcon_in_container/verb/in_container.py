@@ -18,6 +18,7 @@ from typing import List
 
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
+from colcon_in_container.logging import logger
 from colcon_in_container.verb._pro import \
     auto_ros_esm_dependency_management, \
     underlay_workspace_path
@@ -53,16 +54,24 @@ class InContainer(ABC, VerbExtensionPoint):
 
     def _ros_esm(self, args):
         if args.pro and args.auto_deps_management:
-            auto_ros_esm_dependency_management(self.provider,
+            try:
+                auto_ros_esm_dependency_management(self.provider,
                                                self.rosdep,
                                                args.ros_distro,
                                                self.dependency_types)
-            self.provider.download_result(
-                result_path_in_instance=underlay_workspace_path
-                + 'install',
-                result_path_on_host=self.host_install_underlay_folder)
-            self.provider.download_result(
-                result_path_in_instance=underlay_workspace_path
-                + 'build',
-                result_path_on_host=self.host_build_underlay_folder
-            )
+
+                self.provider.download_result(
+                    result_path_in_instance=underlay_workspace_path
+                    + 'install',
+                    result_path_on_host=self.host_install_underlay_folder)
+                self.provider.download_result(
+                    result_path_in_instance=underlay_workspace_path
+                    + 'build',
+                    result_path_on_host=self.host_build_underlay_folder
+                )
+            except SystemError as e:
+                logger.error(f'Failed top create underlay workspace: {e}')
+                return 1
+        return 0
+
+
