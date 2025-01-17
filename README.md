@@ -122,7 +122,7 @@ Usage help:
 $ colcon build-in-container --help
 
 usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--shell-after]
-[--provider {lxd,multipass}] [--pro PRO] [--auto-deps-management]
+[--provider {lxd,multipass}] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Call a colcon build command inside a fresh container.
 
@@ -135,7 +135,7 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
-  --pro PRO             Ubuntu Pro token to enable inside the instance.
+  --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
                         Automatically manages missing dependencies.This will retrieve, install and source the ROS
                         dependencies of the workspace not available in ROS ESM
@@ -161,7 +161,7 @@ Usage help:
 $ colcon test-in-container --help
 
 usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--shell-after]
-[--provider {lxd,multipass}] [--pro PRO] [--auto-deps-management]
+[--provider {lxd,multipass}] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Call a colcon test command inside a fresh container.
 
@@ -175,7 +175,7 @@ options:
   --shell-after         Shell into the environment at the end of the build or if there is an
                         error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
-  --pro PRO             Ubuntu Pro token to enable inside the instance.
+  --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
                         Automatically manages missing dependencies.This will retrieve, install and source the ROS
                         dependencies of the workspace not available in ROS ESM
@@ -201,7 +201,7 @@ Usage help:
 $ colcon release-in-container --help
 
 usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug]
-[--shell-after] [--provider {lxd,multipass}] [--pro PRO] [--auto-deps-management]
+[--shell-after] [--provider {lxd,multipass}] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Generate Debian package inside a fresh container using bloom and fakeroot.
 
@@ -215,7 +215,7 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
-  --pro PRO             Ubuntu Pro token to enable inside the instance.
+  --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
                         Automatically manages missing dependencies.This will retrieve, install and source the ROS
                         dependencies of the workspace not available in ROS ESM

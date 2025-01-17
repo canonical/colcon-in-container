@@ -84,8 +84,9 @@ def add_pro_arguments(parser):
     """Add the Ubuntu Pro token arguments to the parser."""
     parser.add_argument(
         '--pro',
+        metavar='PRO_TOKEN',
         type=str,
-        help='Ubuntu Pro token to enable inside the instance.',
+        help='Ubuntu Pro token to enable ROS ESM inside the instance.',
     )
 
     parser.add_argument(
