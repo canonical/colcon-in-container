@@ -92,7 +92,7 @@ def add_pro_arguments(parser):
     parser.add_argument(
         '--auto-deps-management',
         action='store_true',
-        help='Automatically manages missing dependencies.'
-             'This will retrieve, install and source the '
-             'ROS dependencies of the workspace not available in ROS ESM',
+        help='Automatically manages dependencies that are not covered by '
+             'ROS ESM.'
+             'Their source code is retrieved and compiled against ROS ESM.',
     )

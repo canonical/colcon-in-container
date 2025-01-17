@@ -137,8 +137,8 @@ options:
   --provider {lxd, multipass}      Environment provider.
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
-                        Automatically manages missing dependencies.This will retrieve, install and source the ROS
-                        dependencies of the workspace not available in ROS ESM
+                        Automatically manages dependencies that are not covered by ROS ESM.
+                        Their source code is retrieved and compiled against ROS ESM.
 ```
 
 By default, `build-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
@@ -177,8 +177,8 @@ options:
   --provider {lxd, multipass}      Environment provider.
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
-                        Automatically manages missing dependencies.This will retrieve, install and source the ROS
-                        dependencies of the workspace not available in ROS ESM
+                        Automatically manages dependencies that are not covered by ROS ESM.
+                        Their source code is retrieved and compiled against ROS ESM.
 ```
 
 By default, buil and test `in-container` use the ROS version from the `ROS_DISTRO` environment variable.
@@ -217,8 +217,8 @@ options:
   --provider {lxd, multipass}      Environment provider.
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
-                        Automatically manages missing dependencies.This will retrieve, install and source the ROS
-                        dependencies of the workspace not available in ROS ESM
+                        Automatically manages dependencies that are not covered by ROS ESM.
+                        Their source code is retrieved and compiled against ROS ESM.
 ```
 
 By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
