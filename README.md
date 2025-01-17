@@ -231,24 +231,22 @@ For ROS distribution beyond EoL, `colcon in-container` integrates [Ubuntu Pro](h
 Get your free Ubuntu Pro token at [ubuntu.com/pro/dashboard](https://ubuntu.com/pro/dashboard) and give it a shot.
 
 Note that `colcon in-container` solely supports EoL distros in conjunction with `pro`.
-[Ubuntu Pro dashboard](https://ubuntu.com/pro/dashboard).
 
 ### `--pro`
 
-This flag will let you pass the mandatory Ubuntu Pro token and automatically enable
+This flag will let you pass the Ubuntu Pro token to automatically enable
 [Ubuntu Pro](https://ubuntu.com/pro) and [ROS ESM](https://ubuntu.com/robotics/ros-esm).
 
 ### `--auto-deps-management`
 
-This flag will enable the automatic dependencies management.
+This flag enables the automatic dependencies management.
 
-ROS ESM covers up to the meta-package `ros-$DISTRO-ros-base`. Some ROS packages originally present in the ROS 
-repository might not be present in your workspace.
+ROS ESM covers up to the meta-package `ros-$DISTRO-ros-base`.
+However your package may have ROS dependencies that aren't covered by ROS ESM.
 With the help of the tool [`ros-esm-dependencies-diff-generator`](https://snapcraft.io/ros-esm-dependencies-diff-generator),
-the `--auto-deps-management` flag will take care of finding the dependencies, and installing them within the 
+the `--auto-deps-management` flag takes care of fetching those dependencies sources, and compiles them against ROS ESM within the
 isolated environment.
-
-At the end, the `build/` and `install/` directories of the `ws_underlay` containing the dependencies are downloaded on
+The intermediate dependencies are compiled in a separate underlay colcon workspace which is separately downloaded on
 the host under: `build_in_container_underlay` and `install_in_container_underlay/`
 
 ## Use cases
