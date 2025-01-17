@@ -227,7 +227,8 @@ This can be overwritten with the option `--ros-distro` allowing one to release f
 ## ROS beyond EoL
 
 For ROS distribution beyond EoL, `colcon in-container` integrates [Ubuntu Pro](https://ubuntu.com/pro) and [ROS ESM]
-(https://ubuntu.com/robotics/ros-esm) so you can benefit from security updates for 12 years!
+(https://ubuntu.com/robotics/ros-esm) so you can benefit from security updates for up to 12 years.
+Get your free Ubuntu Pro token at [ubuntu.com/pro/dashboard](https://ubuntu.com/pro/dashboard) and give it a shot.
 
 While EoL distro are limited in `colcon in-container` to use `pro`, you can get a free token on the
 [Ubuntu Pro dashboard](https://ubuntu.com/pro/dashboard).
