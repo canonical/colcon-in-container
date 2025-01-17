@@ -34,6 +34,10 @@ jobs:
       - name: Install LXD
         if: ${{ matrix.provider == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.0
+      - name: Install Multipass
+        run: |
+          sudo snap install multipass
+        if: "${{ matrix.provider == 'multipass' }}"
       - name: Install dependencies
         run: |
           sudo apt update
@@ -42,10 +46,6 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
-
-          if [ ${{ matrix.provider }} == 'multipass' ]; then
-            sudo snap install multipass
-          fi
       - name: Install the extension
         run: |
           pip install .
@@ -105,6 +105,10 @@ jobs:
       - name: Install LXD
         if: ${{ matrix.provider == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.0
+      - name: Install Multipass
+        run: |
+          sudo snap install multipass
+        if: "${{ matrix.provider == 'multipass' }}"
       - name: Install dependencies
         run: |
           sudo apt update
@@ -113,10 +117,6 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
-
-          if [ ${{ matrix.provider }} == 'multipass' ]; then
-            sudo snap install multipass
-          fi
       - name: Install the extension
         run: |
           pip install .
