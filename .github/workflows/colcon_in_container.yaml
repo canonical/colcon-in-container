@@ -129,7 +129,7 @@ jobs:
       - name: Colcon build in container
         run: |
           cd ros_ws
-          # pendulum_msgs pendulum_control depends on tlsf packages not present in the ROS ESM
+          # Note that pendulum_control depends on the tlsf_cpp package not present in ROS ESM nor in the workspace sources
           colcon --log-level=debug build-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }}
       - name: Colcon build in container verify files
         run: |
