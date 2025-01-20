@@ -19,6 +19,7 @@ from colcon_in_container.logging import logger
 
 
 _ros_distro_choices = ['rolling', 'humble', 'jazzy']
+_eol_ros_distro_choices = ['foxy']
 
 
 def add_ros_distro_argument(parser):
@@ -29,7 +30,7 @@ def add_ros_distro_argument(parser):
         '--ros-distro',
         metavar='ROS_DISTRO',
         type=str,
-        choices=_ros_distro_choices,
+        choices=_ros_distro_choices + _eol_ros_distro_choices,
         default=ros_distro_env,
         required=not ros_distro_env,
         help='ROS version, can also be set by the environment variable '
@@ -39,11 +40,20 @@ def add_ros_distro_argument(parser):
 def verify_ros_distro_in_parsed_args(args):
     """Verify if the obtained ROS distro is matching the selection."""
     if args.ros_distro not in _ros_distro_choices:
-        logger.error(f'The ROS_DISTRO={args.ros_distro} '
-                     'environment variable is not a viable '
-                     '--ros-distro argument. See --ros-distro to set '
-                     'a valid ros-distro')
-        return False
+        if args.ros_distro in _eol_ros_distro_choices:
+            if not args.pro:
+                logger.error('The ros-distro is set to the EoL '
+                             'distro {args.ros_distro} '
+                             'without any Ubuntu Pro token provided.'
+                             'Please provide the `--pro` token argument'
+                             'in order to use EoL distro.')
+                return False
+        else:
+            logger.error(f'The ROS_DISTRO={args.ros_distro} '
+                         'environment variable is not a viable '
+                         '--ros-distro argument. See --ros-distro to set '
+                         'a valid ros-distro')
+            return False
     return True
 
 
@@ -67,4 +77,22 @@ def add_instance_argument(parser):
         choices=['lxd', 'multipass'],
         default='lxd',
         help='Environment provider.'
+    )
+
+
+def add_pro_arguments(parser):
+    """Add the Ubuntu Pro token arguments to the parser."""
+    parser.add_argument(
+        '--pro',
+        metavar='PRO_TOKEN',
+        type=str,
+        help='Ubuntu Pro token to enable ROS ESM inside the instance.',
+    )
+
+    parser.add_argument(
+        '--auto-deps-management',
+        action='store_true',
+        help='Automatically manages dependencies that are not covered by '
+             'ROS ESM.'
+             'Their source code is retrieved and compiled against ROS ESM.',
     )

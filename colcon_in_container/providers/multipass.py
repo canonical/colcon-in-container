@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from platform import machine
 import shutil
 import subprocess
 from typing import List
@@ -22,7 +21,6 @@ from typing import List
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers.provider import Provider
-import jinja2
 
 
 def _get_multipass_path():
@@ -32,7 +30,7 @@ def _get_multipass_path():
 class MultipassClient(Provider):
     """Multipass client interacting with the Multipass socket."""
 
-    def __init__(self, ros_distro):  # noqa: D107
+    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
         super().__init__(ros_distro)
 
         self.multipass_path = _get_multipass_path()
@@ -41,10 +39,10 @@ class MultipassClient(Provider):
                 'Multipass is not installed.'
                 'Please run `sudo snap install multipass`')
 
-        self._render_jinja_template()
+        self._render_and_write_jinja_template(pro_token)
 
         if self._run(['info', self.instance_name]).returncode == 0:
-            self._clean_instance()
+            self.clean_instance()
 
         cpus = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_CPUS', default='2')
         mem = os.getenv('COLCON_IN_CONTAINER_MULTIPASS_MEMORY', default='4G')
@@ -62,28 +60,8 @@ class MultipassClient(Provider):
              '--timeout', '1000'], check=True)
         self.execute_command(['cloud-init', 'status', '--wait'])
 
-    def _render_jinja_template(self):
-        config_directory = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'config')
-        cloud_init_file = os.path.join(
-            config_directory, 'cloud-init.yaml')
-        with open(cloud_init_file, 'r') as f:
-            config = f.read()
-
-        template = jinja2.Environment().from_string(source=config)
-        host_architecture = machine()
-        # support for windows 10 and 11 returning all kinds of values
-        # bugs.python.org/issue7146
-        if host_architecture in ['AMD64', 'amd64', 'x64']:
-            host_architecture = 'x86_64'
-        elif host_architecture in ['ARM64', 'arm64']:
-            host_architecture = 'aarch64'
-
-        cloud_init_content = template.render(
-            {'v1': {'machine': host_architecture,
-                    'distro_release': self.ubuntu_distro}}
-        )
-
+    def _render_and_write_jinja_template(self, pro_token):
+        cloud_init_content = self._render_jinja_template(pro_token)
         self.rendered_cloud_init_path = '.colcon-in-container-cloud-init.yaml'
         with open(self.rendered_cloud_init_path, 'w') as f:
             written = f.write(cloud_init_content)
@@ -102,13 +80,14 @@ class MultipassClient(Provider):
         logger.debug(f'Executing on host: {" ".join(command)}')
         return subprocess.run(command, **kwargs)
 
-    def _clean_instance(self):
+    def clean_instance(self):
+        """Clean the created instance."""
         self._run(['delete', '--purge', self.instance_name])
 
     def execute_command(self, command: List[str]):
         """Execute the given command inside the instance."""
         completed_process = self._run(['exec', self.instance_name,
-                                       '--working-directory', '/ws',
+                                       '--working-directory', '/root/ws',
                                        '--', 'sudo', *command],
                                       capture_output=True)
 
@@ -117,8 +96,21 @@ class MultipassClient(Provider):
 
     def _copy_from_instance_to_host(self, *, instance_path, host_path):
         """Copy data from the instance to the host."""
+        temporary_instance_path = f'/home/ubuntu/{instance_path}'
+
+        move_return_code = self.execute_command([
+            f'mkdir -p {temporary_instance_path}'])
+
+        move_return_code &= self.execute_command([
+            f'cp -r {instance_path}/* {temporary_instance_path}'])
+
+        if move_return_code:
+            raise exceptions.FileNotFoundInInstanceError(
+                temporary_instance_path)
+
         command_result = self._run(['transfer', '--recursive', '--parents',
-                                    f'{self.instance_name}:{instance_path}',
+                                    f'{self.instance_name}:'
+                                    f'{temporary_instance_path}',
                                     host_path], check=True)
         if command_result.returncode:
             raise exceptions.FileNotFoundInInstanceError(instance_path)
@@ -169,6 +161,8 @@ class MultipassClient(Provider):
 
         move_return_code = self.execute_command([
             f'mv {temporary_instance_path}/* {instance_path}'])
+        move_return_code &= self.execute_command([
+            f'chown root:root -R {instance_path}'])
 
         if move_return_code:
             raise exceptions.FileNotFoundInInstanceError(

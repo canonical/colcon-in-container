@@ -15,11 +15,13 @@
 
 from abc import ABC, abstractmethod
 import os
+from platform import machine
 import shutil
 
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers._helper import get_ubuntu_distro
+import jinja2
 
 
 class Provider(ABC):
@@ -31,13 +33,33 @@ class Provider(ABC):
         self.ubuntu_distro = get_ubuntu_distro(self.ros_distro)
         self.logger_instance = logger.getChild('instance')
 
-    def __del__(self):  # noqa: D105
-        self._clean_instance()
-
     @abstractmethod
-    def _clean_instance(self):
+    def clean_instance(self):
         """Clean the created instance."""
         pass
+
+    def _render_jinja_template(self, pro_token):
+        config_directory = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), 'config')
+        cloud_init_file = os.path.join(
+            config_directory, 'cloud-init.yaml')
+        with open(cloud_init_file, 'r') as f:
+            config = f.read()
+
+        template = jinja2.Environment().from_string(source=config)
+        host_architecture = machine()
+        # support for windows 10 and 11 returning all kinds of values
+        # bugs.python.org/issue7146
+        if host_architecture in ['AMD64', 'x86_64', 'x64']:
+            host_architecture = 'amd64'
+        elif host_architecture in ['ARM64', 'aarch64']:
+            host_architecture = 'arm64'
+        configuration = {'architecture': host_architecture,
+                         'distro_release': self.ubuntu_distro}
+        if pro_token:
+            configuration['pro_token'] = pro_token
+
+        return template.render(configuration)
 
     def wait_for_install(self):
         """Wait for installation to be done."""
@@ -98,7 +120,7 @@ class Provider(ABC):
 
     def upload_package(self, package_name, package_path):
         """Upload package to instance workspace."""
-        instance_package_path = f'/ws/src/{package_name}'
+        instance_package_path = f'/root/ws/src/{package_name}'
         self.upload_directory(host_path=package_path,
                               instance_path=instance_package_path)
 

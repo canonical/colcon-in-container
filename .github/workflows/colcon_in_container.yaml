@@ -34,6 +34,10 @@ jobs:
       - name: Install LXD
         if: ${{ matrix.provider == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.0
+      - name: Install Multipass
+        run: |
+          sudo snap install multipass
+        if: "${{ matrix.provider == 'multipass' }}"
       - name: Install dependencies
         run: |
           sudo apt update
@@ -42,10 +46,6 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
-
-          if [ ${{ matrix.provider }} == 'multipass' ]; then
-            sudo snap install multipass
-          fi
       - name: Install the extension
         run: |
           pip install .
@@ -84,4 +84,84 @@ jobs:
           ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
           ls release_in_container/COLCON_IGNORE
           ls release_in_container/demo_nodes_cpp/debian
+
+  eol_distro_in_container_integration_test:
+    name: "EoL distro Integration Test"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, [self-hosted, linux, X64, jammy, xlarge]]
+        ros_version: [foxy]
+        provider: [lxd, multipass]
+        exclude:
+          - os: ubuntu-24.04
+            provider: multipass
+          - {os: [self-hosted, linux, X64, jammy, xlarge], provider: lxd}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+      - name: Install LXD
+        if: ${{ matrix.provider == 'lxd' }}
+        uses: canonical/setup-lxd@v0.1.0
+      - name: Install Multipass
+        run: |
+          sudo snap install multipass
+        if: "${{ matrix.provider == 'multipass' }}"
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt upgrade -y
+          sudo rm /usr/lib/python3.*/EXTERNALLY-MANAGED || true
+          python3 -m pip install --upgrade pip
+          pip install setuptools
+          pip install colcon-common-extensions
+      - name: Install the extension
+        run: |
+          pip install .
+      - name: Checkout example to build
+        uses: actions/checkout@v3
+        with:
+          path: ros_ws/src/ros2demo
+          repository: ros2/demos
+          ref: ${{ matrix.ros_version }}
+      - name: Colcon build in container
+        run: |
+          cd ros_ws
+          # Note that pendulum_control depends on the tlsf_cpp package not present in ROS ESM nor in the workspace sources
+          colcon --log-level=debug build-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }}
+      - name: Colcon build in container verify files
+        run: |
+          cd ros_ws
+
+          # dependencies underlay workspace
+          grep ${{ matrix.ros_version }} install_in_container_underlay/setup.sh
+          ls build_in_container_underlay/tlsf_cpp/Makefile
+          ls install_in_container_underlay/tlsf_cpp/bin/tlsf_allocator_example
+
+          # package workspace
+          grep ${{ matrix.ros_version }} install_in_container/setup.sh
+          ls build_in_container/pendulum_control/Makefile
+          ls install_in_container/pendulum_control/bin/pendulum_demo
+      - name: Colcon test in container
+        run: |
+          cd ros_ws
+          colcon --log-level=debug test-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--return-code-on-test-failure"
+      - name: Colcon test in container verify files
+        run: |
+          cd ros_ws
+          grep "Hostname=\"colcon-in-container\"" test_results_in_container/pendulum_control/Testing/*/Test.xml
+      ## commented due to https://github.com/canonical/colcon-in-container/issues/25
+      # - name: Colcon release in container
+      #   run: |
+      #     cd ros_ws
+      #     colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_control --bloom-generator="rosdebian"
+      # - name: Colcon release in container verify files
+      #   run: |
+      #     cd ros_ws
+      #     ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp_*.deb
+      #     ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
+      #     ls release_in_container/COLCON_IGNORE
+      #     ls release_in_container/demo_nodes_cpp/debian
 

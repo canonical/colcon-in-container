@@ -26,8 +26,10 @@ from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_instance_argument, add_ros_distro_argument, \
+    add_instance_argument, add_pro_arguments, \
+    add_ros_distro_argument, \
     verify_ros_distro_in_parsed_args
+from colcon_in_container.verb._pro import auto_ros_esm_dependency_management
 from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
 
@@ -37,12 +39,18 @@ class ReleaseInContainerVerb(InContainer):
 
     def __init__(self):  # noqa: D107
         super().__init__()
+        self.dependency_types = {'build',
+                                 'buildtool',
+                                 'build_export',
+                                 'buildtool_export',
+                                 'test'}
 
     def add_arguments(self, *, parser):  # noqa: D102
 
         add_ros_distro_argument(parser)
         add_instance_argument(parser)
         add_packages_arguments(parser)
+        add_pro_arguments(parser)
 
         parser.add_argument(
             '--bloom-generator',
@@ -77,23 +85,26 @@ class ReleaseInContainerVerb(InContainer):
     def _bloom_generate(self, package_name, generator):
         logger.info(f'Bloom generating {package_name}')
         return self.provider.execute_commands([
-            f'cd /ws/src/{package_name}',
+            f'cd {self.instance_workspace_path}/src/{package_name}',
             f'bloom-generate {generator}'])
 
     def _generate_binary(self, package_name):
         logger.info(f'Generating binary for {package_name}')
         return self.provider.execute_commands([
-            f'cd /ws/src/{package_name}',
+            f'cd {self.instance_workspace_path}/src/{package_name}',
             'fakeroot debian/rules binary'])
 
     def _save_results(self, package_name):
         logger.info(f'Saving results for {package_name}')
         return self.provider.execute_commands([
-            f'mkdir -p /ws/release/{package_name}',
-            f'mv /ws/src/{package_name}/debian /ws/release/{package_name}',
-            f'mv /ws/src/*.deb /ws/release/{package_name}',
+            f'mkdir -p {self.instance_workspace_path}/release/{package_name}',
+            f'mv {self.instance_workspace_path}/src/{package_name}/debian '
+            f'{self.instance_workspace_path}/release/{package_name}',
+            f'mv {self.instance_workspace_path}/src/*.deb '
+            f'{self.instance_workspace_path}/release/{package_name}',
             # not every package have .ddeb file
-            f'mv /ws/src/*.ddeb /ws/release/{package_name} || true'])
+            f'mv {self.instance_workspace_path}/src/*.ddeb '
+            f'{self.instance_workspace_path}/release/{package_name} || true'])
 
     def _add_colcon_ignore(self):
         """Add COLCON_IGNORE to the results.
@@ -114,11 +125,7 @@ class ReleaseInContainerVerb(InContainer):
         """
         commands: List[Callable[[], int]] = [
             partial(self.rosdep.install,
-                    {'build',
-                     'buildtool',
-                     'build_export',
-                     'buildtool_export',
-                     'test'}),
+                    dependency_types=self.dependency_types),
             partial(self._bloom_generate, package_name, args.bloom_generator),
             partial(self._generate_binary, package_name),
             partial(self._save_results, package_name)]
@@ -155,7 +162,8 @@ class ReleaseInContainerVerb(InContainer):
             sys.exit(1)
 
         self.provider = ProviderFactory.create(context.args.provider,
-                                               context.args.ros_distro)
+                                               context.args.ros_distro,
+                                               context.args.pro)
         try:
             self.provider.wait_for_install()
 
@@ -176,6 +184,12 @@ class ReleaseInContainerVerb(InContainer):
             package_names = self._upload_selected_packages(decorators)
             if not package_names:
                 raise FileNotFoundError('No package found for release')
+
+            if context.args.pro and context.args.auto_deps_management:
+                auto_ros_esm_dependency_management(self.provider,
+                                                   self.rosdep,
+                                                   context.args.ros_distro,
+                                                   self.dependency_types)
 
             for package in package_names:
                 try:
@@ -202,5 +216,7 @@ class ReleaseInContainerVerb(InContainer):
         if context.args.shell_after:
             logger.info('Shell after was selected, entering the instance')
             self.provider.shell()
+
+        self.provider.clean_instance()
 
         sys.exit(0)

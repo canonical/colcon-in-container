@@ -2,6 +2,7 @@ aarch
 abstractmethod
 apache
 buildtool
+chown
 cmake
 colcon
 cpus
@@ -9,7 +10,9 @@ dcmake
 ddeb
 debhelper
 debian
+deps
 distro
+distros
 fakeroot
 filepath
 firewalld
@@ -45,9 +48,11 @@ rmtree
 rosdebian
 rosdep
 rosdistro
+rosinstall
 scspell
 setuptools
 simplestreams
+snapcraft
 sudo
 symlink
 thomas

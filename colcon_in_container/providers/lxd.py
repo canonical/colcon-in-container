@@ -21,6 +21,7 @@ import stat
 import subprocess
 from typing import Any, Dict
 
+
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers._helper \
@@ -36,7 +37,7 @@ def _is_lxd_installed():
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
-    def __init__(self, ros_distro):  # noqa: D107
+    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
         super().__init__(ros_distro)
         if system() != 'Linux':
             raise exceptions.ProviderDoesNotSupportHostOSError(
@@ -78,12 +79,8 @@ class LXDClient(Provider):
             'ephemeral': True,
             'config': {},
         }
-        config_directory = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'config')
-        cloud_init_file = os.path.join(
-            config_directory, 'cloud-init.yaml')
-        with open(cloud_init_file, 'r') as f:
-            config['config']['user.user-data'] = f.read()
+        config['config']['user.user-data'] \
+            = self._render_jinja_template(pro_token)
 
         if self.lxd_client.instances.exists(self.instance_name):
             previous_instance = self.lxd_client.instances.get(
@@ -97,7 +94,8 @@ class LXDClient(Provider):
         self.instance = self.lxd_client.instances.create(config, wait=True)
         self.instance.start(wait=True)
 
-    def _clean_instance(self):
+    def clean_instance(self):
+        """Clean the created instance."""
         if hasattr(self, 'instance') and self.instance:
             if self.instance.status == 'Running':
                 self.instance.stop(wait=True)

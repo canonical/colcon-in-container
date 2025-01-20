@@ -25,7 +25,8 @@ from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions as provider_exceptions
 from colcon_in_container.providers.provider_factory import ProviderFactory
 from colcon_in_container.verb._parser import \
-    add_instance_argument, add_ros_distro_argument, \
+    add_instance_argument, add_pro_arguments, \
+    add_ros_distro_argument, \
     verify_ros_distro_in_parsed_args
 from colcon_in_container.verb._rosdep import Rosdep
 from colcon_in_container.verb.in_container import InContainer
@@ -36,6 +37,11 @@ class BuildInContainerVerb(InContainer):
 
     def __init__(self):  # noqa: D107
         super().__init__()
+        self.dependency_types = {'build',
+                                 'buildtool',
+                                 'build_export',
+                                 'buildtool_export',
+                                 'test'}
 
     def add_arguments(self, *, parser):  # noqa: D102
 
@@ -52,6 +58,7 @@ class BuildInContainerVerb(InContainer):
 
         add_instance_argument(parser)
         add_packages_arguments(parser)
+        add_pro_arguments(parser)
 
     def _colcon_build(self, colcon_build_args):
         logger.info(f'building workspace with args: {colcon_build_args}')
@@ -66,12 +73,9 @@ class BuildInContainerVerb(InContainer):
         result build directory.
         """
         commands: List[Callable[[], int]] = [
+            partial(self._ros_esm, args),
             partial(self.rosdep.install,
-                    {'build',
-                     'buildtool',
-                     'build_export',
-                     'buildtool_export',
-                     'test'}),
+                    dependency_types=self.dependency_types),
             partial(self._colcon_build, args.colcon_build_args)]
         for command in commands:
             exit_code = command()
@@ -97,7 +101,9 @@ class BuildInContainerVerb(InContainer):
             sys.exit(1)
 
         self.provider = ProviderFactory.create(context.args.provider,
-                                               context.args.ros_distro)
+                                               context.args.ros_distro,
+                                               context.args.pro)
+
         try:
             self.provider.wait_for_install()
         except provider_exceptions.CloudInitError as e:
@@ -113,12 +119,13 @@ class BuildInContainerVerb(InContainer):
             logger.info(f'Discovered {len(decorators)} packages, '
                         'uploading them in the instance')
             self._upload_selected_packages(decorators)
+
             exit_code = self._build(context.args)
 
         if exit_code != 0:
             logger.error(f'Build failed with exit code {exit_code}. ')
             if context.args.debug:
-                logger.warn('Debug was selected, entering the instance.')
+                logger.warning('Debug was selected, entering the instance.')
                 self.provider.shell()
         else:
             logger.info('Successfully built workspace in container.')
@@ -126,5 +133,7 @@ class BuildInContainerVerb(InContainer):
         if context.args.shell_after:
             logger.info('Shell after was selected, entering the instance.')
             self.provider.shell()
+
+        self.provider.clean_instance()
 
         return exit_code

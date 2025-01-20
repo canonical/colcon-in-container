@@ -16,6 +16,7 @@
 from typing import Optional, Set
 
 from colcon_in_container.logging import logger
+from colcon_in_container.verb._parser import _eol_ros_distro_choices
 
 
 class Rosdep(object):
@@ -26,20 +27,25 @@ class Rosdep(object):
         self.provider = provider
         self.ros_distro = ros_distro
         logger.info('Initialising rosdep')
-        self.provider.execute_command(['rosdep', 'init'])
+        self.provider.execute_commands(['rosdep init'])
 
     def update(self):
         """Call rosdep update."""
         logger.info('Updating rosdep')
-        return self.provider.execute_command(['rosdep', 'update'])
+        command = 'rosdep update'
+        if self.ros_distro in _eol_ros_distro_choices:
+            command += ' --include-eol-distros'
+        return self.provider.execute_commands([command])
 
-    def install(self, dependency_types: Optional[Set[str]] = None):
+    def install(self,
+                workspace='/root/ws/src',
+                dependency_types: Optional[Set[str]] = None):
         """Call rosdep install on the provided dependency_types."""
         logger.info('Installing dependencies with rosdep')
         commands = [
             # Avoid rosdep/apt interactive shell error message
             'export DEBIAN_FRONTEND=noninteractive',
-            'rosdep install --from-paths /ws/src --ignore-src -y '
+            f'rosdep install --from-paths {workspace} --ignore-src -y '
             f'--rosdistro={self.ros_distro} '
         ]
         if dependency_types:
