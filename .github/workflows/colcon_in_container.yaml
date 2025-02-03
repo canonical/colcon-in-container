@@ -155,7 +155,7 @@ jobs:
       - name: Colcon release in container
         run: |
           cd ros_ws
-          colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_msgs pendulum_control --bloom-generator="rosdebian" --install-debs
+          colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_msgs pendulum_control --bloom-generator="rosdebian" --install-released-packages
       - name: Colcon release in container verify files
         run: |
           cd ros_ws
