@@ -63,9 +63,10 @@ class ReleaseInContainerVerb(InContainer):
         )
 
         parser.add_argument(
-            '--install-debs',
+            '--install-released-packages',
             action='store_true',
-            help='Install the released packages so they are available.',
+            help='Progressively install released packages '
+                 'so that dependencies are satisfied.',
         )
 
     def _install_bloom_dependencies(self, ros_distro):
