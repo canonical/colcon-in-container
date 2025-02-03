@@ -219,13 +219,14 @@ options:
   --auto-deps-management
                         Automatically manages dependencies that are not covered by ROS ESM.
                         Their source code is retrieved and compiled against ROS ESM.
-  --install-debs        Install the released packages so they are available.
+  --install-released-packages        Progressively install released packages so that dependencies are satisfied.
 ```
 
 By default, `release-in-container` uses the ROS version from the `ROS_DISTRO` environment variable.
 This can be overwritten with the option `--ros-distro` allowing one to release for a different ROS distribution than the one associated with the host OS.
 
-The `--install-debs` flag automatically install the released packages in the system. This way they are available if the next packages to release have them as dependencies.
+The `--install-released-packages` flag automatically installs the packages as they are released,
+ensuring that local dependencies are satisfied.
 
 ## ROS beyond EoL
 
