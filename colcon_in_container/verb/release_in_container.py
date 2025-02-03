@@ -231,7 +231,7 @@ class ReleaseInContainerVerb(InContainer):
                                       f'failed: {str(e)}')
                 logger.info(f'Package {package} released!')
 
-                if context.args.install_debs:
+                if context.args.install_released_packages:
                     logger.info(f'Installing {package} package.')
                     self._install_package(package)
 
