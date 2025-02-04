@@ -44,6 +44,7 @@ class ReleaseInContainerVerb(InContainer):
                                  'build_export',
                                  'buildtool_export',
                                  'test'}
+        self.packages_from_underlay_ws = []
 
     def add_arguments(self, *, parser):  # noqa: D102
 
@@ -59,6 +60,13 @@ class ReleaseInContainerVerb(InContainer):
             choices=['debian', 'rosdebian'],
             required=False,
             help='Pass arguments to the bloom-generate command.',
+        )
+
+        parser.add_argument(
+            '--install-released-packages',
+            action='store_true',
+            help='Progressively install released packages '
+                 'so that dependencies are satisfied.',
         )
 
     def _install_bloom_dependencies(self, ros_distro):
@@ -156,6 +164,27 @@ class ReleaseInContainerVerb(InContainer):
         # from release won't get detected
         self._add_colcon_ignore()
 
+    def _install_package(self, package_name):
+        """Install the package on the system.
+
+        Install the package on the system so it's available for
+        the packages to be released.
+        For now, only Debian packages are supported.
+
+        Raise: ChildProcessError when the installation fails.
+        """
+        package_to_install = (f'{self.instance_workspace_path}/release/'
+                              f'{package_name}/*.deb')
+        logger.debug(f'Installing {package_to_install} file.')
+        # We ignore the dependencies so the packages from the
+        # underlay workspace are not causing a
+        # missing dependency error.
+        exit_code = self.provider.execute_commands([
+            f'dpkg --install --force-depends {package_to_install}'])
+        if exit_code:
+            raise ChildProcessError('Failed to install released '
+                                    f'package {package_name}: {exit_code}')
+
     def main(self, *, context):  # noqa: D102
 
         if not verify_ros_distro_in_parsed_args(context.args):
@@ -202,14 +231,19 @@ class ReleaseInContainerVerb(InContainer):
                                       f'failed: {str(e)}')
                 logger.info(f'Package {package} released!')
 
+                if context.args.install_released_packages:
+                    logger.info(f'Installing {package} package.')
+                    self._install_package(package)
+
             self._download_packages_results()
 
-        except (SystemError,
+        except (ChildProcessError,
+                SystemError,
                 FileNotFoundError,
                 provider_exceptions.CloudInitError) as e:
             logger.error(str(e))
             if context.args.debug or context.args.shell_after:
-                logger.warn('Debug was selected, entering the instance')
+                logger.warning('Debug was selected, entering the instance')
                 self.provider.shell()
                 sys.exit(1)
 

@@ -152,16 +152,17 @@ jobs:
         run: |
           cd ros_ws
           grep "Hostname=\"colcon-in-container\"" test_results_in_container/pendulum_control/Testing/*/Test.xml
-      ## commented due to https://github.com/canonical/colcon-in-container/issues/25
-      # - name: Colcon release in container
-      #   run: |
-      #     cd ros_ws
-      #     colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_control --bloom-generator="rosdebian"
-      # - name: Colcon release in container verify files
-      #   run: |
-      #     cd ros_ws
-      #     ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp_*.deb
-      #     ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
-      #     ls release_in_container/COLCON_IGNORE
-      #     ls release_in_container/demo_nodes_cpp/debian
+      - name: Colcon release in container
+        run: |
+          cd ros_ws
+          colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_msgs pendulum_control --bloom-generator="rosdebian" --install-released-packages
+      - name: Colcon release in container verify files
+        run: |
+          cd ros_ws
+          ls release_in_container/pendulum_msgs/ros-${{ matrix.ros_version }}-pendulum-msgs_*.deb
+          ls release_in_container/pendulum_control/ros-${{ matrix.ros_version }}-pendulum-control_*.deb
+          ls release_in_container/pendulum_control/ros-${{ matrix.ros_version }}-pendulum-control-dbgsym_*.ddeb
+          ls release_in_container/COLCON_IGNORE
+          ls release_in_container/pendulum_msgs/debian
+          ls release_in_container/pendulum_control/debian
 

@@ -13,6 +13,7 @@ debian
 deps
 distro
 distros
+dpkg
 fakeroot
 filepath
 firewalld
