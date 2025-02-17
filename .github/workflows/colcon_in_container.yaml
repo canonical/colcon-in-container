@@ -37,6 +37,7 @@ jobs:
         uses: canonical/setup-lxd@v0.1.0
       - name: Install Multipass
         run: |
+          groups $USER
           sudo snap install multipass
         if: "${{ matrix.provider == 'multipass' }}"
       - name: Install dependencies
