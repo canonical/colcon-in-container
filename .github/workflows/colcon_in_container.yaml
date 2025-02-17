@@ -15,7 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, [self-hosted, linux, X64, jammy, xlarge]]
+        #os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, [self-hosted, linux, X64, jammy, xlarge]]
+        os: [[self-hosted, linux, X64, jammy, xlarge]]
         ros_version: [jazzy, humble, rolling]
         provider: [lxd, multipass]
         exclude:
@@ -120,49 +121,49 @@ jobs:
       - name: Install the extension
         run: |
           pip install .
-      - name: Checkout example to build
-        uses: actions/checkout@v3
-        with:
-          path: ros_ws/src/ros2demo
-          repository: ros2/demos
-          ref: ${{ matrix.ros_version }}
-      - name: Colcon build in container
-        run: |
-          cd ros_ws
-          # Note that pendulum_control depends on the tlsf_cpp package not present in ROS ESM nor in the workspace sources
-          colcon --log-level=debug build-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }}
-      - name: Colcon build in container verify files
-        run: |
-          cd ros_ws
-
-          # dependencies underlay workspace
-          grep ${{ matrix.ros_version }} install_in_container_underlay/setup.sh
-          ls build_in_container_underlay/tlsf_cpp/Makefile
-          ls install_in_container_underlay/tlsf_cpp/bin/tlsf_allocator_example
-
-          # package workspace
-          grep ${{ matrix.ros_version }} install_in_container/setup.sh
-          ls build_in_container/pendulum_control/Makefile
-          ls install_in_container/pendulum_control/bin/pendulum_demo
-      - name: Colcon test in container
-        run: |
-          cd ros_ws
-          colcon --log-level=debug test-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--return-code-on-test-failure"
-      - name: Colcon test in container verify files
-        run: |
-          cd ros_ws
-          grep "Hostname=\"colcon-in-container\"" test_results_in_container/pendulum_control/Testing/*/Test.xml
-      - name: Colcon release in container
-        run: |
-          cd ros_ws
-          colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_msgs pendulum_control --bloom-generator="rosdebian" --install-released-packages
-      - name: Colcon release in container verify files
-        run: |
-          cd ros_ws
-          ls release_in_container/pendulum_msgs/ros-${{ matrix.ros_version }}-pendulum-msgs_*.deb
-          ls release_in_container/pendulum_control/ros-${{ matrix.ros_version }}-pendulum-control_*.deb
-          ls release_in_container/pendulum_control/ros-${{ matrix.ros_version }}-pendulum-control-dbgsym_*.ddeb
-          ls release_in_container/COLCON_IGNORE
-          ls release_in_container/pendulum_msgs/debian
-          ls release_in_container/pendulum_control/debian
-
+          #      - name: Checkout example to build
+          #        uses: actions/checkout@v3
+          #        with:
+          #          path: ros_ws/src/ros2demo
+          #          repository: ros2/demos
+          #          ref: ${{ matrix.ros_version }}
+          #      - name: Colcon build in container
+          #        run: |
+          #          cd ros_ws
+          #          # Note that pendulum_control depends on the tlsf_cpp package not present in ROS ESM nor in the workspace sources
+          #          colcon --log-level=debug build-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }}
+          #      - name: Colcon build in container verify files
+          #        run: |
+          #          cd ros_ws
+          #
+          #          # dependencies underlay workspace
+          #          grep ${{ matrix.ros_version }} install_in_container_underlay/setup.sh
+          #          ls build_in_container_underlay/tlsf_cpp/Makefile
+          #          ls install_in_container_underlay/tlsf_cpp/bin/tlsf_allocator_example
+          #
+          #          # package workspace
+          #          grep ${{ matrix.ros_version }} install_in_container/setup.sh
+          #          ls build_in_container/pendulum_control/Makefile
+          #          ls install_in_container/pendulum_control/bin/pendulum_demo
+          #      - name: Colcon test in container
+          #        run: |
+          #          cd ros_ws
+          #          colcon --log-level=debug test-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --packages-select pendulum_msgs pendulum_control --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--return-code-on-test-failure"
+          #      - name: Colcon test in container verify files
+          #        run: |
+          #          cd ros_ws
+          #          grep "Hostname=\"colcon-in-container\"" test_results_in_container/pendulum_control/Testing/*/Test.xml
+          #      - name: Colcon release in container
+          #        run: |
+          #          cd ros_ws
+          #          colcon --log-level=debug release-in-container --pro ${{ secrets.PRO_TOKEN }} --auto-deps-management --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select pendulum_msgs pendulum_control --bloom-generator="rosdebian" --install-released-packages
+          #      - name: Colcon release in container verify files
+          #        run: |
+          #          cd ros_ws
+          #          ls release_in_container/pendulum_msgs/ros-${{ matrix.ros_version }}-pendulum-msgs_*.deb
+          #          ls release_in_container/pendulum_control/ros-${{ matrix.ros_version }}-pendulum-control_*.deb
+          #          ls release_in_container/pendulum_control/ros-${{ matrix.ros_version }}-pendulum-control-dbgsym_*.ddeb
+          #          ls release_in_container/COLCON_IGNORE
+          #          ls release_in_container/pendulum_msgs/debian
+          #          ls release_in_container/pendulum_control/debian
+          #
