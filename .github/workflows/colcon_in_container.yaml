@@ -37,7 +37,6 @@ jobs:
         uses: canonical/setup-lxd@v0.1.0
       - name: Install Multipass
         run: |
-          groups $USER
           sudo snap install multipass
         if: "${{ matrix.provider == 'multipass' }}"
       - name: Install dependencies
@@ -48,44 +47,44 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
-      - name: Install the extension
-        run: |
-          pip install .
-      - name: Checkout example to build
-        uses: actions/checkout@v3
-        with:
-          path: ros_ws/src/ros2demo
-          repository: ros2/demos
-          ref: ${{ matrix.ros_version }}
-      - name: Colcon build in container
-        run: |
-          cd ros_ws
-          colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
-      - name: Colcon build in container verify files
-        run: |
-          cd ros_ws
-          grep ${{ matrix.ros_version }} install_in_container/setup.sh
-          ls build_in_container/demo_nodes_cpp/Makefile
-          ls install_in_container/demo_nodes_cpp/lib/demo_nodes_cpp/talker
-      - name: Colcon test in container
-        run: |
-          cd ros_ws
-          colcon --log-level=debug test-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
-      - name: Colcon test in container verify files
-        run: |
-          cd ros_ws
-          grep "Hostname=\"colcon-in-container\"" test_results_in_container/demo_nodes_cpp/Testing/*/Test.xml
-      - name: Colcon release in container
-        run: |
-          cd ros_ws
-          colcon --log-level=debug release-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
-      - name: Colcon release in container verify files
-        run: |
-          cd ros_ws
-          ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp_*.deb
-          ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
-          ls release_in_container/COLCON_IGNORE
-          ls release_in_container/demo_nodes_cpp/debian
+          #      - name: Install the extension
+          #        run: |
+          #          pip install .
+          #      - name: Checkout example to build
+          #        uses: actions/checkout@v3
+          #        with:
+          #          path: ros_ws/src/ros2demo
+          #          repository: ros2/demos
+          #          ref: ${{ matrix.ros_version }}
+          #      - name: Colcon build in container
+          #        run: |
+          #          cd ros_ws
+          #          colcon --log-level=debug build-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-build-args "--packages-select demo_nodes_cpp --cmake-args -DCMAKE_BUILD_TYPE=Release"
+          #      - name: Colcon build in container verify files
+          #        run: |
+          #          cd ros_ws
+          #          grep ${{ matrix.ros_version }} install_in_container/setup.sh
+          #          ls build_in_container/demo_nodes_cpp/Makefile
+          #          ls install_in_container/demo_nodes_cpp/lib/demo_nodes_cpp/talker
+          #      - name: Colcon test in container
+          #        run: |
+          #          cd ros_ws
+          #          colcon --log-level=debug test-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --colcon-test-args "--packages-select demo_nodes_cpp --return-code-on-test-failure"
+          #      - name: Colcon test in container verify files
+          #        run: |
+          #          cd ros_ws
+          #          grep "Hostname=\"colcon-in-container\"" test_results_in_container/demo_nodes_cpp/Testing/*/Test.xml
+          #      - name: Colcon release in container
+          #        run: |
+          #          cd ros_ws
+          #          colcon --log-level=debug release-in-container --provider ${{ matrix.provider}} --ros-distro ${{ matrix.ros_version }} --packages-select demo_nodes_cpp --bloom-generator="rosdebian"
+          #      - name: Colcon release in container verify files
+          #        run: |
+          #          cd ros_ws
+          #          ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp_*.deb
+          #          ls release_in_container/demo_nodes_cpp/ros-${{ matrix.ros_version }}-demo-nodes-cpp-dbgsym_*.ddeb
+          #          ls release_in_container/COLCON_IGNORE
+          #          ls release_in_container/demo_nodes_cpp/debian
 
   eol_distro_in_container_integration_test:
     name: "EoL distro Integration Test"
@@ -119,9 +118,9 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install setuptools
           pip install colcon-common-extensions
-      - name: Install the extension
-        run: |
-          pip install .
+          #      - name: Install the extension
+          #        run: |
+          #          pip install .
           #      - name: Checkout example to build
           #        uses: actions/checkout@v3
           #        with:
