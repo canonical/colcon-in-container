@@ -43,7 +43,7 @@ jobs:
         run: |
           sudo snap install multipass
         if: "${{ matrix.provider == 'multipass' }}"
-      - name: Install dependencies
+      - name: Install dependencies 2
         run: |
           sudo apt update
           sudo apt upgrade -y
