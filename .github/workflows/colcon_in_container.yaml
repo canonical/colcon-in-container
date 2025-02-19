@@ -37,6 +37,7 @@ jobs:
         uses: canonical/setup-lxd@v0.1.0
       - name: Install dependencies
         run: |
+          dpkg --list | grep docker
           sudo apt purge docker-ce docker-ci-cli -y
           sudo apt update
           sudo apt upgrade -y
