@@ -40,6 +40,9 @@ jobs:
         if: "${{ matrix.provider == 'multipass' }}"
       - name: Install dependencies
         run: |
+          # Docker.io cause apt upgrade to timeout on self-hosted runners
+          sudo apt purge docker.io --yes && true
+
           sudo apt update
           sudo apt upgrade -y
           sudo rm /usr/lib/python3.*/EXTERNALLY-MANAGED || true
