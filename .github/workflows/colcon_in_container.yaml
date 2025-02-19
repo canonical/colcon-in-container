@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: |
           dpkg --list | grep docker
-          sudo apt purge docker-ce docker-ci-cli -y
+          sudo apt purge docker.io
           sudo apt update
           sudo apt upgrade -y
       - name: Install Multipass
