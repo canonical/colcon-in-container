@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, [self-hosted, linux, X64, jammy, xlarge]]
-        ros_version: [jazzy, humble, rolling]
+        ros_version: [jazzy, humble, kilted, rolling]
         provider: [lxd, multipass]
         exclude:
           - os: ubuntu-20.04
