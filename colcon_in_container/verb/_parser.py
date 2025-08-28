@@ -18,7 +18,7 @@ from os import getenv
 from colcon_in_container.logging import logger
 
 
-_ros_distro_choices = ['rolling', 'humble', 'jazzy']
+_ros_distro_choices = ['rolling', 'humble', 'jazzy', 'kilted']
 _eol_ros_distro_choices = ['foxy']
 
 
