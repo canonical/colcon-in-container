@@ -80,10 +80,10 @@ def add_instance_argument(parser):
     )
 
     parser.add_argument(
-        '--lxd-remote',
+        '--remote',
         type=str,
         default=None,
-        help='LXD remote server to use for builds. '
+        help='Remote LXD server to use for builds. '
              'Allows building on remote servers for '
              'cross-architecture builds. '
              'Example: https://remote-server:8443'

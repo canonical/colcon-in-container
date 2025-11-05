@@ -64,7 +64,7 @@ class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
     def __init__(  # noqa: D107
-        self, ros_distro, pro_token=None, lxd_remote=None
+        self, ros_distro, pro_token=None, remote=None
     ):
         super().__init__(ros_distro)
         if system() != 'Linux':
@@ -76,11 +76,11 @@ class LXDClient(Provider):
                 'LXD is not installed. Please run `sudo snap install lxd`')
 
         try:
-            self.lxd_remote = lxd_remote
-            if lxd_remote:
+            self.remote = remote
+            if remote:
                 logger.info(
-                    f'Connecting to remote LXD server: {lxd_remote}')
-                self.lxd_client = Client(endpoint=lxd_remote)
+                    f'Connecting to remote LXD server: {remote}')
+                self.lxd_client = Client(endpoint=remote)
             else:
                 self.lxd_client = Client()
         except pylxd_exceptions.ClientConnectionFailed as e:
@@ -218,9 +218,9 @@ class LXDClient(Provider):
 
     def shell(self):
         """Shell into the instance."""
-        if self.lxd_remote:
+        if self.remote:
             # Try to find the remote name for the endpoint
-            remote_name = _find_remote_name_for_endpoint(self.lxd_remote)
+            remote_name = _find_remote_name_for_endpoint(self.remote)
             if remote_name:
                 # We found a matching remote, use it
                 logger.info(
@@ -238,7 +238,7 @@ class LXDClient(Provider):
                     'Remote LXD server detected but no matching remote '
                     'found in lxc configuration. '
                     f'Add the remote using: lxc remote add <name> '
-                    f'{self.lxd_remote}'
+                    f'{self.remote}'
                 )
                 logger.info(
                     'To shell into the remote instance, use: '

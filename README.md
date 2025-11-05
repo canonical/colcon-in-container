@@ -101,9 +101,9 @@ To use a remote LXD server:
    lxc config set core.trust_password "your-password"
    ```
 
-2. Use the `--lxd-remote` flag with `colcon-in-container`:
+2. Use the `--remote` flag with `colcon-in-container`:
    ```
-   colcon build-in-container --lxd-remote https://remote-server-ip:8443 --ros-distro jazzy
+   colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro jazzy
    ```
 
 The remote LXD server will be used to create and manage the build container, enabling cross-architecture builds at native speed.
@@ -143,7 +143,7 @@ Usage help:
 $ colcon build-in-container --help
 
 usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--shell-after]
-[--provider {lxd,multipass}] [--lxd-remote LXD_REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
+[--provider {lxd,multipass}] [--remote REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Call a colcon build command inside a fresh container.
 
@@ -156,8 +156,8 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
-  --lxd-remote LXD_REMOTE
-                        LXD remote server to use for builds. Allows building on remote servers for cross-architecture builds.
+  --remote REMOTE
+                        Remote LXD server to use for builds. Allows building on remote servers for cross-architecture builds.
                         Example: https://remote-server:8443
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
@@ -185,7 +185,7 @@ Usage help:
 $ colcon test-in-container --help
 
 usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--shell-after]
-[--provider {lxd,multipass}] [--lxd-remote LXD_REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
+[--provider {lxd,multipass}] [--remote REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Call a colcon test command inside a fresh container.
 
@@ -199,8 +199,8 @@ options:
   --shell-after         Shell into the environment at the end of the build or if there is an
                         error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
-  --lxd-remote LXD_REMOTE
-                        LXD remote server to use for builds. Allows building on remote servers for cross-architecture builds.
+  --remote REMOTE
+                        Remote LXD server to use for builds. Allows building on remote servers for cross-architecture builds.
                         Example: https://remote-server:8443
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
@@ -228,7 +228,7 @@ Usage help:
 $ colcon release-in-container --help
 
 usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug]
-[--shell-after] [--provider {lxd,multipass}] [--lxd-remote LXD_REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
+[--shell-after] [--provider {lxd,multipass}] [--remote REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Generate Debian package inside a fresh container using bloom and fakeroot.
 
@@ -242,8 +242,8 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
-  --lxd-remote LXD_REMOTE
-                        LXD remote server to use for builds. Allows building on remote servers for cross-architecture builds.
+  --remote REMOTE
+                        Remote LXD server to use for builds. Allows building on remote servers for cross-architecture builds.
                         Example: https://remote-server:8443
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
@@ -297,7 +297,7 @@ If you're developing on an x86_64 laptop but need to build ARM packages for devi
 
 ```bash
 # Build for ARM at native speed using a remote ARM server
-colcon build-in-container --lxd-remote https://arm-server-ip:8443 --ros-distro jazzy
+colcon build-in-container --remote https://arm-server-ip:8443 --ros-distro jazzy
 ```
 
 This avoids the slow performance of QEMU emulation by building directly on ARM hardware.

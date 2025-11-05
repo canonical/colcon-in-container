@@ -98,7 +98,7 @@ class TestInContainerVerb(InContainer):
             context.args.provider,
             context.args.ros_distro,
             context.args.pro,
-            getattr(context.args, 'lxd_remote', None))
+            context.args.remote)
 
         try:
             self.provider.wait_for_install()
