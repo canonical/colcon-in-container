@@ -34,6 +34,32 @@ def _is_lxd_installed():
     return shutil.which('lxd') is not None
 
 
+def _find_remote_name_for_endpoint(endpoint):
+    """Find the lxc remote name for a given endpoint URL.
+
+    Returns the remote name if found, None otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ['lxc', 'remote', 'list', '--format', 'json'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            remotes = json.loads(result.stdout)
+            # Normalize endpoint for comparison (remove trailing slash)
+            normalized_endpoint = endpoint.rstrip('/')
+            for remote_name, remote_info in remotes.items():
+                remote_addr = remote_info.get('Addr', '').rstrip('/')
+                if remote_addr == normalized_endpoint:
+                    return remote_name
+    except (subprocess.TimeoutExpired, json.JSONDecodeError,
+            FileNotFoundError):
+        pass
+    return None
+
+
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
@@ -193,18 +219,30 @@ class LXDClient(Provider):
     def shell(self):
         """Shell into the instance."""
         if self.lxd_remote:
-            # For remote LXD servers, we need to use:
-            # lxc exec <remote>:<instance> -- bash
-            # The remote must be added to lxc first using:
-            # lxc remote add <name> <endpoint>
-            logger.warning(
-                'Remote LXD server detected. Make sure to add the remote '
-                f'using: lxc remote add <name> {self.lxd_remote} '
-                'before shelling in.'
-            )
-            logger.info(
-                'To shell into the remote instance, use: '
-                f'lxc exec <remote-name>:{self.instance_name} -- bash'
-            )
+            # Try to find the remote name for the endpoint
+            remote_name = _find_remote_name_for_endpoint(self.lxd_remote)
+            if remote_name:
+                # We found a matching remote, use it
+                logger.info(
+                    f'Connecting to remote instance using remote: '
+                    f'{remote_name}'
+                )
+                subprocess.run([
+                    'lxc', 'exec',
+                    f'{remote_name}:{self.instance_name}',
+                    '--', 'bash'
+                ])
+            else:
+                # Remote not found in lxc config, provide instructions
+                logger.warning(
+                    'Remote LXD server detected but no matching remote '
+                    'found in lxc configuration. '
+                    f'Add the remote using: lxc remote add <name> '
+                    f'{self.lxd_remote}'
+                )
+                logger.info(
+                    'To shell into the remote instance, use: '
+                    f'lxc exec <remote-name>:{self.instance_name} -- bash'
+                )
         else:
             subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])

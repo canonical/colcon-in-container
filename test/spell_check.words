@@ -53,6 +53,7 @@ rosdebian
 rosdep
 rosdistro
 rosinstall
+rstrip
 scspell
 setuptools
 simplestreams
