@@ -26,6 +26,7 @@ initialised
 initialising
 islnk
 iterdir
+jetson
 jinja
 licence
 linux
@@ -35,6 +36,7 @@ multipass
 mypy
 noninteractive
 noqa
+nvidia
 openssl
 pathlib
 plugin
@@ -42,6 +44,7 @@ pylxd
 pylxds
 pyopenssl
 pytest
+qemu
 quickstart
 readthedocs
 returncode
