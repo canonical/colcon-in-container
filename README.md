@@ -101,19 +101,14 @@ To use a remote LXD server:
    lxc config set core.trust_password "your-password"
    ```
 
-2. On your local machine, add the remote server to your LXD configuration:
-   ```
-   lxc remote add my-arm-server https://remote-server-ip:8443
-   ```
-
-3. Use the `--lxd-remote` flag with `colcon-in-container`:
+2. Use the `--lxd-remote` flag with `colcon-in-container`:
    ```
    colcon build-in-container --lxd-remote https://remote-server-ip:8443 --ros-distro jazzy
    ```
 
 The remote LXD server will be used to create and manage the build container, enabling cross-architecture builds at native speed.
 
-**Note:** When using remote LXD servers, the `--debug` and `--shell-after` options will display instructions for manually connecting to the remote instance using `lxc exec <remote-name>:<instance-name> -- bash`.
+**Note:** The tool uses the LXD API directly (via pylxd), so you don't need to add the remote to your local `lxc` configuration. However, if you use the `--debug` or `--shell-after` options to shell into the remote instance, you'll need to first add the remote using `lxc remote add <name> <endpoint>` to enable the `lxc exec` command.
 
 #### Multipass
 As an alternative to `LXD`, one can use `multipass` as
@@ -301,10 +296,7 @@ The colcon `in-container` extension can be used to:
 If you're developing on an x86_64 laptop but need to build ARM packages for devices like Raspberry Pi or NVIDIA Jetson:
 
 ```bash
-# Add your remote ARM server to LXD
-lxc remote add arm-server https://arm-server-ip:8443
-
-# Build for ARM at native speed
+# Build for ARM at native speed using a remote ARM server
 colcon build-in-container --lxd-remote https://arm-server-ip:8443 --ros-distro jazzy
 ```
 
