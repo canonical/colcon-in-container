@@ -2,3 +2,9 @@
 .venv/
 __pycache__/
 coverage.xml
+*.egg-info/
+build/
+dist/
+*.pyc
+.pytest_cache/
+.mypy_cache/
