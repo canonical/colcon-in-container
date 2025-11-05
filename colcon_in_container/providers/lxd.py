@@ -1,26 +1,32 @@
-# Copyright (C) 2023 Canonical, Ltd.
-
+# Copyright (C) 2023, Canonical, Ltd.
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""LXD provider for colcon-in-container."""
+
+import fcntl
 import json
 import os
 from platform import system
+import select
 import shutil
 import stat
-import subprocess
+import struct
+import sys
+import termios
+import tty
 from typing import Any, Dict
-
 
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
@@ -28,6 +34,7 @@ from colcon_in_container.providers._helper \
     import host_architecture
 from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions as pylxd_exceptions
+from ws4py.client import WebSocketBaseClient
 
 
 def _is_lxd_installed():
@@ -182,6 +189,109 @@ class LXDClient(Provider):
         """Copy data from the instance to the host."""
         self._recursive_put(host_path, instance_path)
 
+    def _get_terminal_size(self):
+        """Get the current terminal size."""
+        try:
+            size = struct.unpack(
+                'HHHH',
+                fcntl.ioctl(
+                    sys.stdout.fileno(),
+                    termios.TIOCGWINSZ,
+                    struct.pack('HHHH', 0, 0, 0, 0)))
+            return {'width': size[1], 'height': size[0]}
+        except (OSError, IOError):
+            return {'width': 80, 'height': 24}
+
     def shell(self):
-        """Shell into the instance."""
-        subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])
+        """Shell into the instance using pylxd interactive execute."""
+        # Get websocket URLs for interactive session
+        ws_info = self.instance.raw_interactive_execute(
+            ['bash'],
+            environment={'TERM': os.environ.get('TERM', 'xterm')},
+            cwd='/ws'
+        )
+
+        # Get the base websocket URL
+        websocket_url = self.lxd_client.websocket_url
+
+        # Interactive websocket client for the shell
+        class InteractiveShellClient(WebSocketBaseClient):
+            """Websocket client for interactive shell sessions."""
+
+            def __init__(self, url, ssl_options=None):
+                """Initialize the interactive shell client."""
+                super().__init__(url, ssl_options=ssl_options)
+                self.stdin_fd = sys.stdin.fileno()
+                self.old_tty_settings = None
+
+            def opened(self):
+                """Set terminal to raw mode when connection established."""
+                try:
+                    self.old_tty_settings = termios.tcgetattr(self.stdin_fd)
+                    tty.setraw(self.stdin_fd)
+                except (OSError, IOError, termios.error):
+                    pass
+
+            def received_message(self, message):
+                """Write received messages from container to stdout."""
+                if message.is_binary:
+                    sys.stdout.buffer.write(message.data)
+                else:
+                    sys.stdout.write(message.data.decode('utf-8'))
+                sys.stdout.flush()
+
+            def closed(self, code, reason=None):
+                """Restore terminal settings when connection closes."""
+                if self.old_tty_settings:
+                    try:
+                        termios.tcsetattr(
+                            self.stdin_fd,
+                            termios.TCSADRAIN,
+                            self.old_tty_settings)
+                    except (OSError, IOError, termios.error):
+                        pass
+
+        # Create websocket client
+        ws_client = InteractiveShellClient(
+            websocket_url,
+            ssl_options=self.lxd_client.ssl_options if hasattr(
+                self.lxd_client, 'ssl_options') else None
+        )
+        ws_client.resource = ws_info['ws']
+
+        try:
+            ws_client.connect()
+
+            # Main loop: read from stdin and send to websocket
+            stdin_fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(stdin_fd)
+
+            try:
+                tty.setraw(stdin_fd)
+
+                while ws_client.stream.closing is None:
+                    # Use select to wait for data on stdin or websocket
+                    rlist = [stdin_fd]
+                    readable, _, _ = select.select(rlist, [], [], 0.1)
+
+                    if stdin_fd in readable:
+                        # Read from stdin and send to websocket
+                        try:
+                            data = os.read(stdin_fd, 4096)
+                            if data:
+                                ws_client.send(data, binary=True)
+                            else:
+                                break
+                        except OSError:
+                            break
+
+            finally:
+                # Restore terminal settings
+                termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_settings)
+                ws_client.close()
+
+        except (OSError, IOError, ConnectionError) as e:
+            logger.error(f'Failed to establish interactive shell: {e}')
+            raise exceptions.ProviderClientError(
+                f'Failed to establish interactive shell: {e}'
+            )
