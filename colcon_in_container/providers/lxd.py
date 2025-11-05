@@ -31,10 +31,38 @@ def _is_lxd_installed():
     return shutil.which('lxd') is not None
 
 
+def _find_remote_name_for_endpoint(endpoint):
+    """Find the lxc remote name for a given endpoint URL.
+
+    Returns the remote name if found, None otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ['lxc', 'remote', 'list', '--format', 'json'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            remotes = json.loads(result.stdout)
+            # Normalize endpoint for comparison (remove trailing slash)
+            normalized_endpoint = endpoint.rstrip('/')
+            for remote_name, remote_info in remotes.items():
+                remote_addr = remote_info.get('Addr', '').rstrip('/')
+                if remote_addr == normalized_endpoint:
+                    return remote_name
+    except (subprocess.TimeoutExpired, json.JSONDecodeError,
+            FileNotFoundError):
+        pass
+    return None
+
+
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
-    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
+    def __init__(  # noqa: D107
+        self, ros_distro, pro_token=None, remote=None
+    ):
         super().__init__(ros_distro)
         if system() != 'Linux':
             raise exceptions.ProviderDoesNotSupportHostOSError(
@@ -43,6 +71,13 @@ class LXDClient(Provider):
         if not _is_lxd_installed():
             raise exceptions.ProviderNotInstalledOnHostError(
                 'LXD is not installed. Please run `sudo snap install lxd`')
+
+        self.remote = remote
+        self.remote_prefix = ''
+        if remote:
+            logger.info(f'Using remote LXD server: {remote}')
+            # For remote, we need to find the remote name configured in lxc
+            self.remote_prefix = self._get_remote_prefix(remote)
 
         # Check if LXD is running by trying to connect to it
         try:
@@ -65,12 +100,13 @@ class LXDClient(Provider):
         cloud_init_data = self._render_jinja_template(pro_token)
 
         # Check if instance already exists and clean it up
-        if self._instance_exists(self.instance_name):
-            instance_status = self._get_instance_status(self.instance_name)
+        full_instance_name = self._get_full_instance_name()
+        if self._instance_exists(full_instance_name):
+            instance_status = self._get_instance_status(full_instance_name)
             if instance_status == 'Running':
-                self._stop_instance(self.instance_name)
+                self._stop_instance(full_instance_name)
             # Delete the instance after stopping
-            self._delete_instance(self.instance_name)
+            self._delete_instance(full_instance_name)
 
         logger.info('Downloading the image then creating the LXD instance')
 
@@ -78,14 +114,14 @@ class LXDClient(Provider):
         subprocess.run([
             'lxc', 'init',
             f'ubuntu-minimal:{self.ubuntu_distro}',
-            self.instance_name,
+            self._get_full_instance_name(),
             '--ephemeral'
         ], check=True, capture_output=True, text=True)
 
         # Set cloud-init config using stdin to avoid
         # command line length limits and special character issues
         subprocess.run(
-            ['lxc', 'config', 'set', self.instance_name,
+            ['lxc', 'config', 'set', self._get_full_instance_name(),
              'user.user-data', '-'],
             input=cloud_init_data.encode('utf-8'),
             check=True,
@@ -94,10 +130,34 @@ class LXDClient(Provider):
 
         # Start instance with cloud-init config applied
         subprocess.run(
-            ['lxc', 'start', self.instance_name],
+            ['lxc', 'start', self._get_full_instance_name()],
             check=True,
             capture_output=True
         )
+
+    def _get_remote_prefix(self, endpoint):
+        """Get the remote name prefix for lxc commands.
+
+        Returns the remote name followed by colon (e.g., 'myremote:')
+        or empty string if using local LXD.
+        """
+        remote_name = _find_remote_name_for_endpoint(endpoint)
+        if remote_name:
+            logger.info(f'Found configured remote: {remote_name}')
+            return f'{remote_name}:'
+        else:
+            logger.warning(
+                f'Remote {endpoint} not found in lxc configuration. '
+                f'Please add it using: lxc remote add <name> {endpoint}'
+            )
+            raise exceptions.ProviderClientError(
+                f'Remote LXD server {endpoint} is not configured. '
+                f'Add it using: lxc remote add <name> {endpoint}'
+            )
+
+    def _get_full_instance_name(self):
+        """Get the full instance name with remote prefix if applicable."""
+        return f'{self.remote_prefix}{self.instance_name}'
 
     def _instance_exists(self, instance_name):
         """Check if an LXD instance exists."""
@@ -141,12 +201,13 @@ class LXDClient(Provider):
 
     def clean_instance(self):
         """Clean the created instance."""
-        if self._instance_exists(self.instance_name):
-            instance_status = self._get_instance_status(self.instance_name)
+        full_instance_name = self._get_full_instance_name()
+        if self._instance_exists(full_instance_name):
+            instance_status = self._get_instance_status(full_instance_name)
             if instance_status == 'Running':
-                self._stop_instance(self.instance_name)
+                self._stop_instance(full_instance_name)
             # Delete the instance after stopping
-            self._delete_instance(self.instance_name)
+            self._delete_instance(full_instance_name)
 
     def _is_lxd_initialised(self):
         """Check if LXD is initialized by checking the default profile."""
@@ -170,9 +231,9 @@ class LXDClient(Provider):
     def execute_command(self, command):
         """Execute the given command inside the instance."""
         # Execute command in the instance with working directory /ws
+        full_name = self._get_full_instance_name()
         result = subprocess.run(
-            ['lxc', 'exec', self.instance_name, '--cwd', '/ws', '--']
-            + command,
+            ['lxc', 'exec', full_name, '--cwd', '/ws', '--'] + command,
             capture_output=True,
             text=True
         )
@@ -194,7 +255,7 @@ class LXDClient(Provider):
                 # the source name inside temp_dir
                 subprocess.run(
                     ['lxc', 'file', 'pull', '--recursive',
-                     f'{self.instance_name}{instance_path}',
+                     f'{self._get_full_instance_name()}{instance_path}',
                      temp_dir],
                     check=True,
                     capture_output=True
@@ -231,7 +292,7 @@ class LXDClient(Provider):
 
         # Remove the file in the instance if it exists (ignore errors)
         subprocess.run(
-            ['lxc', 'exec', self.instance_name, '--',
+            ['lxc', 'exec', self._get_full_instance_name(), '--',
              'rm', '-f', instance_file_path],
             capture_output=True
         )
@@ -240,13 +301,14 @@ class LXDClient(Provider):
             subprocess.run(
                 ['lxc', 'file', 'push', '--create-dirs',
                  temp_file_path,
-                 f'{self.instance_name}{instance_file_path}'],
+                 f'{self._get_full_instance_name()}{instance_file_path}'],
                 check=True,
                 capture_output=True
             )
         except subprocess.CalledProcessError as e:
+            full_name = self._get_full_instance_name()
             logger.error(
-                f'Failed to push file to instance {self.instance_name} '
+                f'Failed to push file to instance {full_name} '
                 f'at path {instance_file_path}')
             logger.error(f'Command: {e.cmd}')
             logger.error(f'Return code: {e.returncode}')
@@ -273,11 +335,12 @@ class LXDClient(Provider):
             subprocess.run(
                 ['lxc', 'file', 'push', '--recursive', '--create-dirs',
                  item,
-                 f'{self.instance_name}{instance_path}/'],
+                 f'{self._get_full_instance_name()}{instance_path}/'],
                 check=True,
                 capture_output=True
             )
 
     def shell(self):
         """Shell into the instance."""
-        subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])
+        full_name = self._get_full_instance_name()
+        subprocess.run(['lxc', 'exec', full_name, '--', 'bash'])
