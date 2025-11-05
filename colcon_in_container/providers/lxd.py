@@ -223,12 +223,14 @@ class LXDClient(Provider):
                 super().__init__(url, ssl_options=ssl_options)
                 self.stdin_fd = sys.stdin.fileno()
                 self.old_tty_settings = None
+                self.is_connected = False
 
             def opened(self):
                 """Set terminal to raw mode when connection established."""
                 try:
                     self.old_tty_settings = termios.tcgetattr(self.stdin_fd)
                     tty.setraw(self.stdin_fd)
+                    self.is_connected = True
                 except (OSError, IOError, termios.error):
                     pass
 
@@ -242,6 +244,7 @@ class LXDClient(Provider):
 
             def closed(self, code, reason=None):
                 """Restore terminal settings when connection closes."""
+                self.is_connected = False
                 if self.old_tty_settings:
                     try:
                         termios.tcsetattr(
@@ -264,31 +267,25 @@ class LXDClient(Provider):
 
             # Main loop: read from stdin and send to websocket
             stdin_fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(stdin_fd)
 
-            try:
-                tty.setraw(stdin_fd)
+            while ws_client.is_connected and hasattr(
+                    ws_client, 'stream') and ws_client.stream.closing is None:
+                # Use select to wait for data on stdin or websocket
+                rlist = [stdin_fd]
+                readable, _, _ = select.select(rlist, [], [], 0.1)
 
-                while ws_client.stream.closing is None:
-                    # Use select to wait for data on stdin or websocket
-                    rlist = [stdin_fd]
-                    readable, _, _ = select.select(rlist, [], [], 0.1)
-
-                    if stdin_fd in readable:
-                        # Read from stdin and send to websocket
-                        try:
-                            data = os.read(stdin_fd, 4096)
-                            if data:
-                                ws_client.send(data, binary=True)
-                            else:
-                                break
-                        except OSError:
+                if stdin_fd in readable:
+                    # Read from stdin and send to websocket
+                    try:
+                        data = os.read(stdin_fd, 4096)
+                        if data:
+                            ws_client.send(data, binary=True)
+                        else:
                             break
+                    except OSError:
+                        break
 
-            finally:
-                # Restore terminal settings
-                termios.tcsetattr(stdin_fd, termios.TCSADRAIN, old_settings)
-                ws_client.close()
+            ws_client.close()
 
         except (OSError, IOError, ConnectionError) as e:
             logger.error(f'Failed to establish interactive shell: {e}')
