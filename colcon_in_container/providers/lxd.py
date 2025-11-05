@@ -59,7 +59,7 @@ class LXDClient(Provider):
                 self.lxd_client = Client()
         except pylxd_exceptions.ClientConnectionFailed as e:
             raise exceptions.ProviderClientError(
-                'Failed to initialized LXD client. '
+                'Failed to initialize LXD client. '
                 f'Make sure LXD is properly installed and running: {e}'
             )
 
@@ -199,7 +199,8 @@ class LXDClient(Provider):
             # lxc remote add <name> <endpoint>
             logger.warning(
                 'Remote LXD server detected. Make sure to add the remote '
-                'using: lxc remote add <name> <endpoint> before shelling in.'
+                f'using: lxc remote add <name> {self.lxd_remote} '
+                'before shelling in.'
             )
             logger.info(
                 'To shell into the remote instance, use: '
