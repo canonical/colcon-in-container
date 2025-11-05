@@ -37,7 +37,9 @@ def _is_lxd_installed():
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
-    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
+    def __init__(  # noqa: D107
+        self, ros_distro, pro_token=None, lxd_remote=None
+    ):
         super().__init__(ros_distro)
         if system() != 'Linux':
             raise exceptions.ProviderDoesNotSupportHostOSError(
@@ -48,7 +50,13 @@ class LXDClient(Provider):
                 'LXD is not installed. Please run `sudo snap install lxd`')
 
         try:
-            self.lxd_client = Client()
+            self.lxd_remote = lxd_remote
+            if lxd_remote:
+                logger.info(
+                    f'Connecting to remote LXD server: {lxd_remote}')
+                self.lxd_client = Client(endpoint=lxd_remote)
+            else:
+                self.lxd_client = Client()
         except pylxd_exceptions.ClientConnectionFailed as e:
             raise exceptions.ProviderClientError(
                 'Failed to initialized LXD client. '
@@ -184,4 +192,18 @@ class LXDClient(Provider):
 
     def shell(self):
         """Shell into the instance."""
-        subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])
+        if self.lxd_remote:
+            # For remote LXD servers, we need to use:
+            # lxc exec <remote>:<instance> -- bash
+            # The remote must be added to lxc first using:
+            # lxc remote add <name> <endpoint>
+            logger.warning(
+                'Remote LXD server detected. Make sure to add the remote '
+                'using: lxc remote add <name> <endpoint> before shelling in.'
+            )
+            logger.info(
+                'To shell into the remote instance, use: '
+                f'lxc exec <remote-name>:{self.instance_name} -- bash'
+            )
+        else:
+            subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])

@@ -40,12 +40,16 @@ class ProviderFactory(object):
         cls._providers[name] = provider
 
     @classmethod
-    def create(cls, name, ros_distro, pro_token=None):
+    def create(cls, name, ros_distro, pro_token=None, lxd_remote=None):
         """Make a provider based on the name."""
         provider = cls._providers.get(name)
         if not provider:
             raise exceptions.ProviderNotRegisteredError(name)
-        return provider(ros_distro, pro_token)  # type: ignore
+        # Only pass lxd_remote to LXD provider
+        if name == 'lxd':
+            return provider(ros_distro, pro_token, lxd_remote)  # type: ignore
+        else:
+            return provider(ros_distro, pro_token)  # type: ignore
 
 
 # Register all the providers
