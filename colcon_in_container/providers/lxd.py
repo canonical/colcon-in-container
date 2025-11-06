@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import os
 from platform import system
 import shutil
 import subprocess
@@ -54,7 +53,7 @@ class LXDClient(Provider):
             )
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             raise exceptions.ProviderClientError(
-                'Failed to initialized LXD client. '
+                'Failed to initialize LXD client. '
                 f'Make sure LXD is properly installed and running: {e}'
             )
 
@@ -78,33 +77,35 @@ class LXDClient(Provider):
             instance_status = self._get_instance_status(self.instance_name)
             if instance_status == 'Running':
                 self._stop_instance(self.instance_name)
-            else:
-                self._delete_instance(self.instance_name)
+            # Delete the instance after stopping
+            self._delete_instance(self.instance_name)
 
         logger.info('Downloading the image then creating the LXD instance')
 
-        # Create instance with cloud-init config
-        # First, we need to write the cloud-init config to a temporary file
-        import tempfile
-        with tempfile.NamedTemporaryFile(
-                mode='w', suffix='.yaml',
-                delete=False) as cloud_init_file:
-            cloud_init_file.write(cloud_init_data)
-            cloud_init_path = cloud_init_file.name
+        # Create instance (but don't start it yet)
+        subprocess.run([
+            'lxc', 'init',
+            f'{cloud_init_url}:{image_alias}',
+            self.instance_name,
+            '--ephemeral'
+        ], check=True, capture_output=True, text=True)
 
-        try:
-            # Launch instance with cloud-init
-            subprocess.run([
-                'lxc', 'launch',
-                f'{cloud_init_url}:{image_alias}',
-                self.instance_name,
-                '--ephemeral',
-                '--config', f'user.user-data={cloud_init_data}'
-            ], check=True, capture_output=True, text=True)
-        finally:
-            # Clean up temp file
-            if os.path.exists(cloud_init_path):
-                os.unlink(cloud_init_path)
+        # Set cloud-init config using stdin to avoid
+        # command line length limits and special character issues
+        subprocess.run(
+            ['lxc', 'config', 'set', self.instance_name,
+             'user.user-data', '-'],
+            input=cloud_init_data.encode('utf-8'),
+            check=True,
+            capture_output=True
+        )
+
+        # Start instance with cloud-init config applied
+        subprocess.run(
+            ['lxc', 'start', self.instance_name],
+            check=True,
+            capture_output=True
+        )
 
     def _instance_exists(self, instance_name):
         """Check if an LXD instance exists."""
@@ -152,6 +153,8 @@ class LXDClient(Provider):
             instance_status = self._get_instance_status(self.instance_name)
             if instance_status == 'Running':
                 self._stop_instance(self.instance_name)
+            # Delete the instance after stopping
+            self._delete_instance(self.instance_name)
 
     def _is_lxd_initialised(self):
         """Check if LXD is initialized by checking the default profile."""
