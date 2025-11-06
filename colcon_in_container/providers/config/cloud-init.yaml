@@ -7,7 +7,7 @@ apt:
     ros2:
       source: "deb [arch={{ architecture }}] http://packages.ros.org/ros2/ubuntu {{ distro_release }} main"
       keyid: C1CF 6E31 E6BA DE88 68B1 72B4 F42E D6FB AB17 C654
-      keyserver: hkps://keyserver.ubuntu.com
+      keyserver: hkps://keyserver.ubuntu.com:443
 {% else %}
 ubuntu_pro:
   enable: [esm-apps, esm-infra, ros]

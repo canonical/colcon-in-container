@@ -42,10 +42,10 @@ def test_cloud_init_uses_hkps_keyserver():
     }
     rendered = template.render(configuration)
 
-    # Verify the keyserver parameter is present and uses hkps://
-    assert 'keyserver: hkps://keyserver.ubuntu.com' in rendered, \
-        'Cloud-init config must include hkps:// keyserver to bypass ' \
-        'firewall blocks on port 11371'
+    # Verify the keyserver parameter is present and uses hkps:// with port 443
+    assert 'keyserver: hkps://keyserver.ubuntu.com:443' in rendered, \
+        'Cloud-init config must include hkps:// keyserver with port 443 ' \
+        'to bypass firewall blocks on port 11371'
 
     # Also verify keyid is still present
     assert 'keyid:' in rendered, \
