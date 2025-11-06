@@ -89,6 +89,33 @@ Initialize `LXD` with:
 lxd init --auto
 ```
 
+#### Remote LXD for cross-architecture builds
+
+For developers who need to build packages for different architectures (e.g., ARM packages on an x86_64 laptop), `colcon-in-container` supports connecting to remote LXD servers. This enables building at native speed on remote ARM servers, avoiding the slow performance of QEMU emulation.
+
+To use a remote LXD server:
+
+1. Set up your remote LXD server to accept connections:
+   ```
+   lxc config set core.https_address "[::]:8443"
+   lxc config set core.trust_password "your-password"
+   ```
+
+2. On your local machine, add the remote to establish trust and generate certificates:
+   ```
+   lxc remote add my-remote https://remote-server-ip:8443
+   ```
+   This command will prompt for the trust password and create client certificates (in `~/snap/lxd/common/config/` for snap installations or `~/.config/lxc/` for traditional installations) that are used for authentication.
+
+3. Use the `--remote` flag with `colcon-in-container`:
+   ```
+   colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro jazzy
+   ```
+
+The tool will automatically use the client certificates for authentication with the remote LXD server.
+
+**Note:** If you use the `--debug` or `--shell-after` options to shell into the remote instance, the tool will automatically detect if the remote is configured in lxc and use `lxc exec` to connect. If not found, it will provide instructions.
+
 #### Multipass
 As an alternative to `LXD`, one can use `multipass` as
 an environment provider.
@@ -122,7 +149,7 @@ Usage help:
 $ colcon build-in-container --help
 
 usage: colcon build-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-build-args *] [--debug] [--shell-after]
-[--provider {lxd,multipass}] [--pro PRO_TOKEN] [--auto-deps-management]
+[--provider {lxd,multipass}] [--remote REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Call a colcon build command inside a fresh container.
 
@@ -135,6 +162,9 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
+  --remote REMOTE
+                        Remote LXD server to use for builds. Allows building on remote servers for cross-architecture builds.
+                        Example: https://remote-server:8443
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
                         Automatically manages dependencies that are not covered by ROS ESM.
@@ -161,7 +191,7 @@ Usage help:
 $ colcon test-in-container --help
 
 usage: colcon test-in-container [-h] [--ros-distro ROS_DISTRO] [--colcon-test-args *] [--debug] [--shell-after]
-[--provider {lxd,multipass}] [--pro PRO_TOKEN] [--auto-deps-management]
+[--provider {lxd,multipass}] [--remote REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Call a colcon test command inside a fresh container.
 
@@ -175,6 +205,9 @@ options:
   --shell-after         Shell into the environment at the end of the build or if there is an
                         error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
+  --remote REMOTE
+                        Remote LXD server to use for builds. Allows building on remote servers for cross-architecture builds.
+                        Example: https://remote-server:8443
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
                         Automatically manages dependencies that are not covered by ROS ESM.
@@ -201,7 +234,7 @@ Usage help:
 $ colcon release-in-container --help
 
 usage: colcon release-in-container [-h] [--ros-distro ROS_DISTRO] [--bloom-generator {debian,rosdebian}] [--debug]
-[--shell-after] [--provider {lxd,multipass}] [--pro PRO_TOKEN] [--auto-deps-management]
+[--shell-after] [--provider {lxd,multipass}] [--remote REMOTE] [--pro PRO_TOKEN] [--auto-deps-management]
 
 Generate Debian package inside a fresh container using bloom and fakeroot.
 
@@ -215,6 +248,9 @@ options:
   --debug               Shell into the environment in case the build fails.
   --shell-after         Shell into the environment at the end of the build or if there is an error. This flag includes "--debug".
   --provider {lxd, multipass}      Environment provider.
+  --remote REMOTE
+                        Remote LXD server to use for builds. Allows building on remote servers for cross-architecture builds.
+                        Example: https://remote-server:8443
   --pro PRO_TOKEN       Ubuntu Pro token to enable ROS ESM inside the instance.
   --auto-deps-management
                         Automatically manages dependencies that are not covered by ROS ESM.
@@ -259,7 +295,18 @@ The colcon `in-container` extension can be used to:
 - Build, test and release a ROS 2 package for a different ROS distribution
 - Make sure that your `package.xml` are up to date
 - Build, test and release a ROS 2 workspace with a ROS 2 version you haven't installed
+- **Build ROS 2 packages for different architectures (e.g., ARM) using remote LXD servers at native speed**
 - And more!
+
+### Cross-architecture builds example
+If you're developing on an x86_64 laptop but need to build ARM packages for devices like Raspberry Pi or NVIDIA Jetson:
+
+```bash
+# Build for ARM at native speed using a remote ARM server
+colcon build-in-container --remote https://arm-server-ip:8443 --ros-distro jazzy
+```
+
+This avoids the slow performance of QEMU emulation by building directly on ARM hardware.
 
 ## Troubleshooting
 If you have issues with pylxd and openssl:

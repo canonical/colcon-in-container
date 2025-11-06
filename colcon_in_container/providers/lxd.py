@@ -34,10 +34,90 @@ def _is_lxd_installed():
     return shutil.which('lxd') is not None
 
 
+def _get_lxd_client_cert():
+    """Get LXD client certificate paths if they exist.
+
+    Checks both snap and traditional LXD installation locations.
+    Returns a tuple of (cert_path, key_path) or (None, None) if not found.
+    """
+    # Check snap location first (most common on Ubuntu)
+    snap_config_dir = os.path.expanduser('~/snap/lxd/common/config')
+    snap_cert_file = os.path.join(snap_config_dir, 'client.crt')
+    snap_key_file = os.path.join(snap_config_dir, 'client.key')
+
+    if os.path.exists(snap_cert_file) and os.path.exists(snap_key_file):
+        return (snap_cert_file, snap_key_file)
+
+    # Check traditional location
+    config_dir = os.path.expanduser('~/.config/lxc')
+    cert_file = os.path.join(config_dir, 'client.crt')
+    key_file = os.path.join(config_dir, 'client.key')
+
+    if os.path.exists(cert_file) and os.path.exists(key_file):
+        return (cert_file, key_file)
+
+    return (None, None)
+
+
+def _get_lxd_server_cert(endpoint):
+    """Get LXD server certificate for the given endpoint.
+
+    Checks both snap and traditional LXD installation locations.
+    Returns the server certificate path or None if not found.
+    """
+    # Extract hostname from endpoint for server cert lookup
+    from urllib.parse import urlparse
+    parsed = urlparse(endpoint)
+    hostname = parsed.hostname or parsed.netloc.split(':')[0]
+
+    # Check snap location first
+    snap_config_dir = os.path.expanduser('~/snap/lxd/common/config')
+    snap_server_cert = os.path.join(
+        snap_config_dir, 'servercerts', f'{hostname}.crt')
+    if os.path.exists(snap_server_cert):
+        return snap_server_cert
+
+    # Check traditional location
+    config_dir = os.path.expanduser('~/.config/lxc')
+    server_cert = os.path.join(config_dir, 'servercerts', f'{hostname}.crt')
+    if os.path.exists(server_cert):
+        return server_cert
+
+    return None
+
+
+def _find_remote_name_for_endpoint(endpoint):
+    """Find the lxc remote name for a given endpoint URL.
+
+    Returns the remote name if found, None otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ['lxc', 'remote', 'list', '--format', 'json'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            remotes = json.loads(result.stdout)
+            # Normalize endpoint for comparison (remove trailing slash)
+            normalized_endpoint = endpoint.rstrip('/')
+            for remote_name, remote_info in remotes.items():
+                remote_addr = remote_info.get('Addr', '').rstrip('/')
+                if remote_addr == normalized_endpoint:
+                    return remote_name
+    except (subprocess.TimeoutExpired, json.JSONDecodeError,
+            FileNotFoundError):
+        pass
+    return None
+
+
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
-    def __init__(self, ros_distro, pro_token=None):  # noqa: D107
+    def __init__(  # noqa: D107
+        self, ros_distro, pro_token=None, remote=None
+    ):
         super().__init__(ros_distro)
         if system() != 'Linux':
             raise exceptions.ProviderDoesNotSupportHostOSError(
@@ -48,10 +128,66 @@ class LXDClient(Provider):
                 'LXD is not installed. Please run `sudo snap install lxd`')
 
         try:
-            self.lxd_client = Client()
+            self.remote = remote
+            if remote:
+                logger.info(
+                    f'Connecting to remote LXD server: {remote}')
+                # Get client certificate for authentication
+                cert_path, key_path = _get_lxd_client_cert()
+                # Get server certificate for SSL verification
+                server_cert_path = _get_lxd_server_cert(remote)
+
+                if cert_path and key_path:
+                    # Use certificate authentication
+                    cert = (cert_path, key_path)
+                    logger.debug(
+                        f'Using client certificate: {cert_path}')
+
+                    # Use server certificate for SSL verification if available
+                    if server_cert_path:
+                        logger.debug(
+                            f'Using server certificate: {server_cert_path}')
+                        self.lxd_client = Client(
+                            endpoint=remote,
+                            cert=cert,
+                            verify=server_cert_path
+                        )
+                    else:
+                        # Server cert not found, disable verification
+                        logger.warning(
+                            'Server certificate not found. '
+                            'SSL verification will be disabled.')
+                        self.lxd_client = Client(
+                            endpoint=remote,
+                            cert=cert,
+                            verify=False
+                        )
+                else:
+                    # No certificate found, try without cert
+                    # (server might allow unauthenticated access)
+                    logger.warning(
+                        'No client certificate found. '
+                        'Attempting connection without certificate. '
+                        'If authentication fails, ensure LXD client '
+                        'certificates exist in ~/snap/lxd/common/config/ '
+                        '(snap) or ~/.config/lxc/ (traditional install).'
+                    )
+                    # Try with server cert for verification if available
+                    if server_cert_path:
+                        self.lxd_client = Client(
+                            endpoint=remote,
+                            verify=server_cert_path
+                        )
+                    else:
+                        self.lxd_client = Client(
+                            endpoint=remote,
+                            verify=False
+                        )
+            else:
+                self.lxd_client = Client()
         except pylxd_exceptions.ClientConnectionFailed as e:
             raise exceptions.ProviderClientError(
-                'Failed to initialized LXD client. '
+                'Failed to initialize LXD client. '
                 f'Make sure LXD is properly installed and running: {e}'
             )
 
@@ -184,4 +320,31 @@ class LXDClient(Provider):
 
     def shell(self):
         """Shell into the instance."""
-        subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])
+        if self.remote:
+            # Try to find the remote name for the endpoint
+            remote_name = _find_remote_name_for_endpoint(self.remote)
+            if remote_name:
+                # We found a matching remote, use it
+                logger.info(
+                    f'Connecting to remote instance using remote: '
+                    f'{remote_name}'
+                )
+                subprocess.run([
+                    'lxc', 'exec',
+                    f'{remote_name}:{self.instance_name}',
+                    '--', 'bash'
+                ])
+            else:
+                # Remote not found in lxc config, provide instructions
+                logger.warning(
+                    'Remote LXD server detected but no matching remote '
+                    'found in lxc configuration. '
+                    f'Add the remote using: lxc remote add <name> '
+                    f'{self.remote}'
+                )
+                logger.info(
+                    'To shell into the remote instance, use: '
+                    f'lxc exec <remote-name>:{self.instance_name} -- bash'
+                )
+        else:
+            subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])

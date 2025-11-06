@@ -20,12 +20,14 @@ firewalld
 frontend
 functools
 github
+hostname
 howto
 https
 initialised
 initialising
 islnk
 iterdir
+jetson
 jinja
 licence
 linux
@@ -33,8 +35,10 @@ linuxcontainers
 lstrip
 multipass
 mypy
+netloc
 noninteractive
 noqa
+nvidia
 openssl
 pathlib
 plugin
@@ -42,6 +46,7 @@ pylxd
 pylxds
 pyopenssl
 pytest
+qemu
 quickstart
 readthedocs
 returncode
@@ -50,7 +55,9 @@ rosdebian
 rosdep
 rosdistro
 rosinstall
+rstrip
 scspell
+servercerts
 setuptools
 simplestreams
 snapcraft
@@ -58,6 +65,8 @@ sudo
 symlink
 thomas
 ubuntu
+urllib
+urlparse
 utime
 venv
 wronly
