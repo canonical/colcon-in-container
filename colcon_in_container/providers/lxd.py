@@ -15,14 +15,12 @@
 
 """LXD provider for colcon-in-container."""
 
-import fcntl
 import json
 import os
 from platform import system
 import select
 import shutil
 import stat
-import struct
 import sys
 import termios
 import tty
@@ -189,19 +187,6 @@ class LXDClient(Provider):
         """Copy data from the instance to the host."""
         self._recursive_put(host_path, instance_path)
 
-    def _get_terminal_size(self):
-        """Get the current terminal size."""
-        try:
-            size = struct.unpack(
-                'HHHH',
-                fcntl.ioctl(
-                    sys.stdout.fileno(),
-                    termios.TIOCGWINSZ,
-                    struct.pack('HHHH', 0, 0, 0, 0)))
-            return {'width': size[1], 'height': size[0]}
-        except (OSError, IOError):
-            return {'width': 80, 'height': 24}
-
     def shell(self):
         """Shell into the instance using pylxd interactive execute."""
         # Get websocket URLs for interactive session
@@ -231,8 +216,8 @@ class LXDClient(Provider):
                     self.old_tty_settings = termios.tcgetattr(self.stdin_fd)
                     tty.setraw(self.stdin_fd)
                     self.is_connected = True
-                except (OSError, IOError, termios.error):
-                    pass
+                except (OSError, IOError, termios.error) as e:
+                    logger.error(f'Failed to set terminal to raw mode: {e}')
 
             def received_message(self, message):
                 """Write received messages from container to stdout."""

@@ -15,18 +15,15 @@ distro
 distros
 dpkg
 fakeroot
-fcntl
 filepath
 firewalld
 frontend
 functools
 github
-hhhh
 howto
 https
 initialised
 initialising
-ioctl
 islnk
 iterdir
 jinja
@@ -61,7 +58,6 @@ snapcraft
 sudo
 symlink
 thomas
-tiocgwinsz
 ubuntu
 utime
 venv
