@@ -27,17 +27,13 @@ iterdir
 jinja
 licence
 linux
-linuxcontainers
 lstrip
 multipass
 mypy
 noninteractive
 noqa
-openssl
 pathlib
 plugin
-pylxd
-pylxds
 pyopenssl
 pytest
 quickstart
