@@ -20,6 +20,8 @@ from typing import List
 
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
+from colcon_in_container.providers._helper \
+    import get_proxy_environment_variables
 from colcon_in_container.providers.provider import Provider
 
 
@@ -86,10 +88,25 @@ class MultipassClient(Provider):
 
     def execute_command(self, command: List[str]):
         """Execute the given command inside the instance."""
-        completed_process = self._run(['exec', self.instance_name,
-                                       '--working-directory', '/root/ws',
-                                       '--', 'sudo', *command],
-                                      capture_output=True)
+        proxy_env = get_proxy_environment_variables()
+
+        # Build environment variable assignments for sudo
+        env_vars = []
+        for key, value in proxy_env.items():
+            env_vars.append(f'{key}={value}')
+
+        # Use sudo -E to preserve environment or set them explicitly
+        if env_vars:
+            # Set environment variables before the command
+            full_command = (['exec', self.instance_name,
+                             '--working-directory', '/root/ws',
+                             '--', 'sudo'] + env_vars + command)
+        else:
+            full_command = (['exec', self.instance_name,
+                             '--working-directory', '/root/ws',
+                             '--', 'sudo'] + command)
+
+        completed_process = self._run(full_command, capture_output=True)
 
         self.logger_instance.debug(completed_process.stdout.strip())
         return completed_process.returncode

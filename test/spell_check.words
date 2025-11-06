@@ -30,6 +30,7 @@ jinja
 licence
 linux
 linuxcontainers
+localhost
 lstrip
 multipass
 mypy
@@ -58,6 +59,7 @@ sudo
 symlink
 thomas
 ubuntu
+unittest
 utime
 venv
 wronly
