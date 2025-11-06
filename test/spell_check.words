@@ -20,6 +20,7 @@ firewalld
 frontend
 functools
 github
+hkps
 howto
 https
 initialised
@@ -27,6 +28,8 @@ initialising
 islnk
 iterdir
 jinja
+keyid
+keyserver
 licence
 linux
 linuxcontainers
