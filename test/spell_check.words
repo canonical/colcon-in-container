@@ -15,7 +15,6 @@ distro
 distros
 dpkg
 fakeroot
-filepath
 firewalld
 frontend
 functools
@@ -24,7 +23,6 @@ howto
 https
 initialised
 initialising
-islnk
 iterdir
 jinja
 licence
@@ -52,13 +50,11 @@ rosdistro
 rosinstall
 scspell
 setuptools
-simplestreams
 snapcraft
 sudo
-symlink
+tempfile
 thomas
 ubuntu
 utime
 venv
-wronly
 yaml
