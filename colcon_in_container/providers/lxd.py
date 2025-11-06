@@ -21,8 +21,6 @@ import subprocess
 
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
-from colcon_in_container.providers._helper \
-    import host_architecture
 from colcon_in_container.providers.provider import Provider
 
 
@@ -61,15 +59,6 @@ class LXDClient(Provider):
             raise exceptions.ProviderNotConfiguredError(
                 'LXD is not initialised. Please run `lxd init --auto`')
 
-        if self.ubuntu_distro == 'noble':
-            # necessary due to
-            # https://github.com/canonical/cloud-init/issues/5223
-            cloud_init_url = 'https://cloud-images.ubuntu.com/releases/'
-        else:
-            cloud_init_url = \
-                'https://cloud-images.ubuntu.com/minimal/releases/'
-
-        image_alias = f'{self.ubuntu_distro}/{host_architecture()}'
         cloud_init_data = self._render_jinja_template(pro_token)
 
         # Check if instance already exists and clean it up
@@ -85,7 +74,7 @@ class LXDClient(Provider):
         # Create instance (but don't start it yet)
         subprocess.run([
             'lxc', 'init',
-            f'{cloud_init_url}:{image_alias}',
+            'ubuntu-minimal',
             self.instance_name,
             '--ephemeral'
         ], check=True, capture_output=True, text=True)
@@ -198,7 +187,7 @@ class LXDClient(Provider):
         try:
             # Use lxc file pull with recursive flag
             subprocess.run(
-                ['lxc', 'file', 'pull', '-r',
+                ['lxc', 'file', 'pull', '--recursive',
                  f'{self.instance_name}{instance_path}',
                  host_path],
                 check=True,
@@ -222,7 +211,7 @@ class LXDClient(Provider):
         """Copy data from the host to the instance."""
         # Use lxc file push with recursive flag
         subprocess.run(
-            ['lxc', 'file', 'push', '-r', '-p',
+            ['lxc', 'file', 'push', '--recursive', '--create-dirs',
              host_path,
              f'{self.instance_name}{instance_path}'],
             check=True,
