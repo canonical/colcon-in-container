@@ -2,3 +2,5 @@
 .venv/
 __pycache__/
 coverage.xml
+*.egg-info/
+.colcon-in-container-cloud-init.yaml

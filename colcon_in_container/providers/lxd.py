@@ -25,7 +25,7 @@ from typing import Any, Dict
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers._helper \
-    import host_architecture
+    import get_proxy_environment_variables, host_architecture
 from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions as pylxd_exceptions
 
@@ -106,8 +106,10 @@ class LXDClient(Provider):
 
     def execute_command(self, command):
         """Execute the given command inside the instance."""
+        proxy_env = get_proxy_environment_variables()
         return self.instance.execute(
-            command, stdout_handler=self.logger_instance.debug,
+            command, environment=proxy_env,
+            stdout_handler=self.logger_instance.debug,
             stderr_handler=self.logger_instance.debug, cwd='/ws'
         ).exit_code
 

@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 from platform import processor
+from typing import Dict
 
 
 _ros2_ubuntu_distro = {'rolling': 'noble',
@@ -37,3 +39,22 @@ def host_architecture():
         raise SystemError(f'Architecture {host_processor} is not supported')
 
     return processor_architecture[host_processor]
+
+
+def get_proxy_environment_variables() -> Dict[str, str]:
+    """Get proxy environment variables from the host system.
+
+    Returns a dictionary of proxy environment variables that are set on the
+    host. This includes http_proxy, https_proxy, no_proxy and their uppercase
+    variants.
+    """
+    proxy_vars = {}
+    proxy_var_names = ['http_proxy', 'https_proxy', 'no_proxy',
+                       'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY']
+
+    for var_name in proxy_var_names:
+        value = os.getenv(var_name)
+        if value:
+            proxy_vars[var_name] = value
+
+    return proxy_vars
