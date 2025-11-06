@@ -259,8 +259,11 @@ class LXDClient(Provider):
         ws_client.resource = ws_info['ws']
 
         try:
-            # Connect in a separate thread
-            ws_thread = threading.Thread(target=ws_client.run_forever)
+            # Establish connection first
+            ws_client.connect()
+
+            # Run message loop in a separate thread
+            ws_thread = threading.Thread(target=ws_client.run)
             ws_thread.daemon = True
             ws_thread.start()
 
