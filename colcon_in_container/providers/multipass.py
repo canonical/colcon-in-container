@@ -90,17 +90,17 @@ class MultipassClient(Provider):
         """Execute the given command inside the instance."""
         proxy_env = get_proxy_environment_variables()
 
-        # Build environment variable assignments for sudo
-        env_vars = []
-        for key, value in proxy_env.items():
-            env_vars.append(f'{key}={value}')
+        # For sudo, we need to use env command to set environment variables
+        if proxy_env:
+            # Build env command with proxy variables
+            env_cmd = ['env']
+            for key, value in proxy_env.items():
+                env_cmd.append(f'{key}={value}')
 
-        # Use sudo -E to preserve environment or set them explicitly
-        if env_vars:
-            # Set environment variables before the command
+            # Construct full command: sudo env VAR=value ... command
             full_command = (['exec', self.instance_name,
                              '--working-directory', '/root/ws',
-                             '--', 'sudo'] + env_vars + command)
+                             '--', 'sudo'] + env_cmd + command)
         else:
             full_command = (['exec', self.instance_name,
                              '--working-directory', '/root/ws',
