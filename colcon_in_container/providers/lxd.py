@@ -18,13 +18,9 @@
 import json
 import os
 from platform import system
-import select
 import shutil
 import stat
-import sys
-import termios
-import threading
-import tty
+import subprocess
 from typing import Any, Dict
 
 from colcon_in_container.logging import logger
@@ -33,7 +29,6 @@ from colcon_in_container.providers._helper \
     import host_architecture
 from colcon_in_container.providers.provider import Provider
 from pylxd import Client, exceptions as pylxd_exceptions
-from ws4py.client import WebSocketBaseClient
 
 
 def _is_lxd_installed():
@@ -189,137 +184,10 @@ class LXDClient(Provider):
         self._recursive_put(host_path, instance_path)
 
     def shell(self):
-        """Shell into the instance using pylxd interactive execute."""
-        # Get websocket URLs for interactive session
-        ws_info = self.instance.raw_interactive_execute(
-            ['bash'],
-            environment={'TERM': os.environ.get('TERM', 'xterm')},
-            cwd='/ws'
-        )
-
-        # Get the base websocket URL
-        websocket_url = self.lxd_client.websocket_url
-
-        # Event to signal connection is ready
-        connection_ready = threading.Event()
-        connection_error = threading.Event()
-
-        # Interactive websocket client for the shell
-        class InteractiveShellClient(WebSocketBaseClient):
-            """Websocket client for interactive shell sessions."""
-
-            def __init__(self, url, ssl_options=None):
-                """Initialize the interactive shell client."""
-                super().__init__(url, ssl_options=ssl_options)
-                self.stdin_fd = sys.stdin.fileno()
-                self.old_tty_settings = None
-                self.is_connected = False
-
-            def opened(self):
-                """Set terminal to raw mode when connection established."""
-                try:
-                    self.old_tty_settings = termios.tcgetattr(self.stdin_fd)
-                    tty.setraw(self.stdin_fd)
-                    self.is_connected = True
-                    connection_ready.set()
-                except (OSError, IOError, termios.error) as e:
-                    logger.error(f'Failed to set terminal to raw mode: {e}')
-                    connection_error.set()
-
-            def received_message(self, message):
-                """Write received messages from container to stdout."""
-                try:
-                    if message.is_binary:
-                        sys.stdout.buffer.write(message.data)
-                    else:
-                        sys.stdout.write(message.data.decode('utf-8'))
-                    sys.stdout.flush()
-                except (OSError, IOError) as e:
-                    logger.debug(f'Error writing to stdout: {e}')
-                    self.close()
-
-            def closed(self, code, reason=None):
-                """Restore terminal settings when connection closes."""
-                self.is_connected = False
-                if self.old_tty_settings:
-                    try:
-                        termios.tcsetattr(
-                            self.stdin_fd,
-                            termios.TCSADRAIN,
-                            self.old_tty_settings)
-                    except (OSError, IOError, termios.error):
-                        pass
-
-        # Create websocket client
-        ws_client = InteractiveShellClient(
-            websocket_url,
-            ssl_options=self.lxd_client.ssl_options if hasattr(
-                self.lxd_client, 'ssl_options') else None
-        )
-        ws_client.resource = ws_info['ws']
-
-        try:
-            # Establish connection first
-            ws_client.connect()
-
-            # Run message loop in a separate thread
-            ws_thread = threading.Thread(target=ws_client.run)
-            ws_thread.daemon = True
-            ws_thread.start()
-
-            # Wait for connection to be established
-            if not connection_ready.wait(timeout=5):
-                if connection_error.is_set():
-                    raise exceptions.ProviderClientError(
-                        'Failed to establish websocket connection: '
-                        'terminal setup failed'
-                    )
-                raise exceptions.ProviderClientError(
-                    'Failed to establish websocket connection: timeout'
-                )
-
-            # Main loop: read from stdin and send to websocket
-            stdin_fd = sys.stdin.fileno()
-            old_settings = termios.tcgetattr(stdin_fd)
-
-            try:
-                while ws_client.is_connected and ws_thread.is_alive():
-                    # Use select to wait for data on stdin
-                    rlist = [stdin_fd]
-                    readable, _, _ = select.select(rlist, [], [], 0.1)
-
-                    if stdin_fd in readable:
-                        # Read from stdin and send to websocket
-                        try:
-                            data = os.read(stdin_fd, 4096)
-                            if data:
-                                ws_client.send(data, binary=True)
-                            else:
-                                # EOF received
-                                break
-                        except OSError as e:
-                            logger.debug(f'Error reading from stdin: {e}')
-                            break
-
-            finally:
-                # Restore terminal settings before closing
-                try:
-                    termios.tcsetattr(
-                        stdin_fd, termios.TCSADRAIN, old_settings)
-                except (OSError, IOError, termios.error):
-                    pass
-
-                # Close websocket gracefully
-                try:
-                    ws_client.close()
-                except (OSError, IOError, ConnectionError) as e:
-                    logger.debug(f'Error closing websocket: {e}')
-
-                # Wait for thread to finish
-                ws_thread.join(timeout=1)
-
-        except (OSError, IOError, ConnectionError) as e:
-            logger.error(f'Failed to establish interactive shell: {e}')
-            raise exceptions.ProviderClientError(
-                f'Failed to establish interactive shell: {e}'
-            )
+        """Shell into the instance using lxc exec for proper TTY handling."""
+        # For interactive shells, lxc exec provides proper PTY/TTY handling,
+        # terminal resizing, signal forwarding, and other features that are
+        # difficult to replicate with raw websockets. This is appropriate for
+        # interactive debugging sessions triggered by --debug or --shell-after.
+        # Non-interactive command execution uses execute_command() with pylxd.
+        subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])

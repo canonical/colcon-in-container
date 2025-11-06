@@ -45,7 +45,6 @@ pytest
 quickstart
 readthedocs
 returncode
-rlist
 rmtree
 rosdebian
 rosdep
@@ -61,7 +60,6 @@ thomas
 ubuntu
 utime
 venv
-websocket
+websockets
 wronly
-xterm
 yaml
