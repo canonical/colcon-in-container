@@ -37,14 +37,25 @@ def _is_lxd_installed():
 def _get_lxd_client_cert():
     """Get LXD client certificate paths if they exist.
 
+    Checks both snap and traditional LXD installation locations.
     Returns a tuple of (cert_path, key_path) or (None, None) if not found.
     """
+    # Check snap location first (most common on Ubuntu)
+    snap_config_dir = os.path.expanduser('~/snap/lxd/common/config')
+    snap_cert_file = os.path.join(snap_config_dir, 'client.crt')
+    snap_key_file = os.path.join(snap_config_dir, 'client.key')
+
+    if os.path.exists(snap_cert_file) and os.path.exists(snap_key_file):
+        return (snap_cert_file, snap_key_file)
+
+    # Check traditional location
     config_dir = os.path.expanduser('~/.config/lxc')
     cert_file = os.path.join(config_dir, 'client.crt')
     key_file = os.path.join(config_dir, 'client.key')
 
     if os.path.exists(cert_file) and os.path.exists(key_file):
         return (cert_file, key_file)
+
     return (None, None)
 
 
@@ -113,7 +124,8 @@ class LXDClient(Provider):
                         'No client certificate found. '
                         'Attempting connection without certificate. '
                         'If authentication fails, ensure LXD client '
-                        'certificates exist in ~/.config/lxc/'
+                        'certificates exist in ~/snap/lxd/common/config/ '
+                        '(snap) or ~/.config/lxc/ (traditional install).'
                     )
                     self.lxd_client = Client(
                         endpoint=remote,

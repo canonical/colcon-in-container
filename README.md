@@ -105,14 +105,14 @@ To use a remote LXD server:
    ```
    lxc remote add my-remote https://remote-server-ip:8443
    ```
-   This command will prompt for the trust password and create client certificates in `~/.config/lxc/` that are used for authentication.
+   This command will prompt for the trust password and create client certificates (in `~/snap/lxd/common/config/` for snap installations or `~/.config/lxc/` for traditional installations) that are used for authentication.
 
 3. Use the `--remote` flag with `colcon-in-container`:
    ```
    colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro jazzy
    ```
 
-The tool will automatically use the client certificates from `~/.config/lxc/` for authentication with the remote LXD server.
+The tool will automatically use the client certificates for authentication with the remote LXD server.
 
 **Note:** If you use the `--debug` or `--shell-after` options to shell into the remote instance, the tool will automatically detect if the remote is configured in lxc and use `lxc exec` to connect. If not found, it will provide instructions.
 
