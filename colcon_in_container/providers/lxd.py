@@ -23,6 +23,7 @@ import shutil
 import stat
 import sys
 import termios
+import threading
 import tty
 from typing import Any, Dict
 
@@ -199,6 +200,10 @@ class LXDClient(Provider):
         # Get the base websocket URL
         websocket_url = self.lxd_client.websocket_url
 
+        # Event to signal connection is ready
+        connection_ready = threading.Event()
+        connection_error = threading.Event()
+
         # Interactive websocket client for the shell
         class InteractiveShellClient(WebSocketBaseClient):
             """Websocket client for interactive shell sessions."""
@@ -216,16 +221,22 @@ class LXDClient(Provider):
                     self.old_tty_settings = termios.tcgetattr(self.stdin_fd)
                     tty.setraw(self.stdin_fd)
                     self.is_connected = True
+                    connection_ready.set()
                 except (OSError, IOError, termios.error) as e:
                     logger.error(f'Failed to set terminal to raw mode: {e}')
+                    connection_error.set()
 
             def received_message(self, message):
                 """Write received messages from container to stdout."""
-                if message.is_binary:
-                    sys.stdout.buffer.write(message.data)
-                else:
-                    sys.stdout.write(message.data.decode('utf-8'))
-                sys.stdout.flush()
+                try:
+                    if message.is_binary:
+                        sys.stdout.buffer.write(message.data)
+                    else:
+                        sys.stdout.write(message.data.decode('utf-8'))
+                    sys.stdout.flush()
+                except (OSError, IOError) as e:
+                    logger.debug(f'Error writing to stdout: {e}')
+                    self.close()
 
             def closed(self, code, reason=None):
                 """Restore terminal settings when connection closes."""
@@ -248,29 +259,61 @@ class LXDClient(Provider):
         ws_client.resource = ws_info['ws']
 
         try:
-            ws_client.connect()
+            # Connect in a separate thread
+            ws_thread = threading.Thread(target=ws_client.run_forever)
+            ws_thread.daemon = True
+            ws_thread.start()
+
+            # Wait for connection to be established
+            if not connection_ready.wait(timeout=5):
+                if connection_error.is_set():
+                    raise exceptions.ProviderClientError(
+                        'Failed to establish websocket connection: '
+                        'terminal setup failed'
+                    )
+                raise exceptions.ProviderClientError(
+                    'Failed to establish websocket connection: timeout'
+                )
 
             # Main loop: read from stdin and send to websocket
             stdin_fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(stdin_fd)
 
-            while ws_client.is_connected and hasattr(
-                    ws_client, 'stream') and ws_client.stream.closing is None:
-                # Use select to wait for data on stdin or websocket
-                rlist = [stdin_fd]
-                readable, _, _ = select.select(rlist, [], [], 0.1)
+            try:
+                while ws_client.is_connected and ws_thread.is_alive():
+                    # Use select to wait for data on stdin
+                    rlist = [stdin_fd]
+                    readable, _, _ = select.select(rlist, [], [], 0.1)
 
-                if stdin_fd in readable:
-                    # Read from stdin and send to websocket
-                    try:
-                        data = os.read(stdin_fd, 4096)
-                        if data:
-                            ws_client.send(data, binary=True)
-                        else:
+                    if stdin_fd in readable:
+                        # Read from stdin and send to websocket
+                        try:
+                            data = os.read(stdin_fd, 4096)
+                            if data:
+                                ws_client.send(data, binary=True)
+                            else:
+                                # EOF received
+                                break
+                        except OSError as e:
+                            logger.debug(f'Error reading from stdin: {e}')
                             break
-                    except OSError:
-                        break
 
-            ws_client.close()
+            finally:
+                # Restore terminal settings before closing
+                try:
+                    termios.tcsetattr(
+                        stdin_fd, termios.TCSADRAIN, old_settings)
+                except (OSError, IOError, termios.error):
+                    pass
+
+                # Close websocket gracefully
+                try:
+                    ws_client.close()
+                except (OSError, IOError, ConnectionError) as e:
+                    logger.debug(f'Error closing websocket: {e}')
+
+                # Wait for thread to finish
+                ws_thread.join(timeout=1)
 
         except (OSError, IOError, ConnectionError) as e:
             logger.error(f'Failed to establish interactive shell: {e}')
