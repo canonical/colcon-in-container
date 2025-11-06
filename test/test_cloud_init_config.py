@@ -15,7 +15,6 @@
 
 """Test cloud-init configuration."""
 
-import os
 from pathlib import Path
 
 import jinja2
