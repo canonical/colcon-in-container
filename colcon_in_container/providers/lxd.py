@@ -1,17 +1,19 @@
-# Copyright (C) 2023 Canonical, Ltd.
-
+# Copyright (C) 2023, Canonical, Ltd.
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""LXD provider for colcon-in-container."""
 
 import json
 import os
@@ -20,7 +22,6 @@ import shutil
 import stat
 import subprocess
 from typing import Any, Dict
-
 
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
@@ -183,5 +184,10 @@ class LXDClient(Provider):
         self._recursive_put(host_path, instance_path)
 
     def shell(self):
-        """Shell into the instance."""
+        """Shell into the instance using lxc exec for proper TTY handling."""
+        # For interactive shells, lxc exec provides proper PTY/TTY handling,
+        # terminal resizing, signal forwarding, and other features that are
+        # difficult to replicate with raw websockets. This is appropriate for
+        # interactive debugging sessions triggered by --debug or --shell-after.
+        # Non-interactive command execution uses execute_command() with pylxd.
         subprocess.run(['lxc', 'exec', self.instance_name, '--', 'bash'])
