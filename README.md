@@ -101,14 +101,20 @@ To use a remote LXD server:
    lxc config set core.trust_password "your-password"
    ```
 
-2. Use the `--remote` flag with `colcon-in-container`:
+2. On your local machine, add the remote to establish trust and generate certificates:
+   ```
+   lxc remote add my-remote https://remote-server-ip:8443
+   ```
+   This command will prompt for the trust password and create client certificates in `~/.config/lxc/` that are used for authentication.
+
+3. Use the `--remote` flag with `colcon-in-container`:
    ```
    colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro jazzy
    ```
 
-The remote LXD server will be used to create and manage the build container, enabling cross-architecture builds at native speed.
+The tool will automatically use the client certificates from `~/.config/lxc/` for authentication with the remote LXD server.
 
-**Note:** The tool uses the LXD API directly (via pylxd), so you don't need to add the remote to your local `lxc` configuration. However, if you use the `--debug` or `--shell-after` options to shell into the remote instance, you'll need to first add the remote using `lxc remote add <name> <endpoint>` to enable the `lxc exec` command.
+**Note:** If you use the `--debug` or `--shell-after` options to shell into the remote instance, the tool will automatically detect if the remote is configured in lxc and use `lxc exec` to connect. If not found, it will provide instructions.
 
 #### Multipass
 As an alternative to `LXD`, one can use `multipass` as

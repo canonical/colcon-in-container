@@ -34,6 +34,20 @@ def _is_lxd_installed():
     return shutil.which('lxd') is not None
 
 
+def _get_lxd_client_cert():
+    """Get LXD client certificate paths if they exist.
+
+    Returns a tuple of (cert_path, key_path) or (None, None) if not found.
+    """
+    config_dir = os.path.expanduser('~/.config/lxc')
+    cert_file = os.path.join(config_dir, 'client.crt')
+    key_file = os.path.join(config_dir, 'client.key')
+
+    if os.path.exists(cert_file) and os.path.exists(key_file):
+        return (cert_file, key_file)
+    return (None, None)
+
+
 def _find_remote_name_for_endpoint(endpoint):
     """Find the lxc remote name for a given endpoint URL.
 
@@ -80,7 +94,31 @@ class LXDClient(Provider):
             if remote:
                 logger.info(
                     f'Connecting to remote LXD server: {remote}')
-                self.lxd_client = Client(endpoint=remote)
+                # Get client certificate for authentication
+                cert_path, key_path = _get_lxd_client_cert()
+                if cert_path and key_path:
+                    # Use certificate authentication
+                    cert = (cert_path, key_path)
+                    logger.debug(
+                        f'Using client certificate: {cert_path}')
+                    self.lxd_client = Client(
+                        endpoint=remote,
+                        cert=cert,
+                        verify=False  # LXD uses self-signed certs
+                    )
+                else:
+                    # No certificate found, try without cert
+                    # (server might allow unauthenticated access)
+                    logger.warning(
+                        'No client certificate found. '
+                        'Attempting connection without certificate. '
+                        'If authentication fails, ensure LXD client '
+                        'certificates exist in ~/.config/lxc/'
+                    )
+                    self.lxd_client = Client(
+                        endpoint=remote,
+                        verify=False  # LXD uses self-signed certs
+                    )
             else:
                 self.lxd_client = Client()
         except pylxd_exceptions.ClientConnectionFailed as e:
