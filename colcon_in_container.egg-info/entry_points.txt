@@ -1,0 +1,4 @@
+[colcon_core.verb]
+build-in-container = colcon_in_container.verb.build_in_container:BuildInContainerVerb
+release-in-container = colcon_in_container.verb.release_in_container:ReleaseInContainerVerb
+test-in-container = colcon_in_container.verb.test_in_container:TestInContainerVerb
