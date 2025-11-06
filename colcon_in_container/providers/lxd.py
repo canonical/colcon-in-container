@@ -130,9 +130,9 @@ class LXDClient(Provider):
 
     def _delete_instance(self, instance_name):
         """Delete an LXD instance."""
+        # Ignore errors - instance may not exist or may fail to delete
         subprocess.run(
             ['lxc', 'delete', instance_name, '--force'],
-            check=True,
             capture_output=True
         )
 
