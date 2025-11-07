@@ -44,10 +44,12 @@ rosdebian
 rosdep
 rosdistro
 rosinstall
+rstrip
 scspell
 setuptools
 snapcraft
 sudo
+tempfile
 thomas
 ubuntu
 utime

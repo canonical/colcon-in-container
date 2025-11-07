@@ -14,9 +14,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import os
 from platform import system
 import shutil
 import subprocess
+import tempfile
 
 
 from colcon_in_container.logging import logger
@@ -185,17 +187,28 @@ class LXDClient(Provider):
     def _copy_from_instance_to_host(self, *, instance_path, host_path):
         """Copy data from the instance to the host."""
         try:
-            # Use lxc file pull with recursive flag
-            # Append /. to pull the contents of the directory rather than
-            # the directory itself, matching the original behavior
-            source_path = f'{self.instance_name}{instance_path}/.'
-            subprocess.run(
-                ['lxc', 'file', 'pull', '--recursive',
-                 source_path,
-                 host_path],
-                check=True,
-                capture_output=True
-            )
+            # Create a temporary directory to pull into
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Pull the directory - lxc will create a subdirectory with
+                # the source name inside temp_dir
+                subprocess.run(
+                    ['lxc', 'file', 'pull', '--recursive',
+                     f'{self.instance_name}{instance_path}',
+                     temp_dir],
+                    check=True,
+                    capture_output=True
+                )
+
+                # Get the basename of the source path
+                source_basename = os.path.basename(instance_path.rstrip('/'))
+                pulled_dir = os.path.join(temp_dir, source_basename)
+
+                # Move the contents to the target location
+                if os.path.exists(pulled_dir):
+                    shutil.move(pulled_dir, host_path)
+                else:
+                    raise FileNotFoundError(
+                        f'Expected directory {pulled_dir} not found')
         except subprocess.CalledProcessError:
             raise exceptions.FileNotFoundInInstanceError(instance_path)
 
