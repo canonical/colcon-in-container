@@ -186,9 +186,12 @@ class LXDClient(Provider):
         """Copy data from the instance to the host."""
         try:
             # Use lxc file pull with recursive flag
+            # Append /. to pull the contents of the directory rather than
+            # the directory itself, matching the original behavior
+            source_path = f'{self.instance_name}{instance_path}/.'
             subprocess.run(
                 ['lxc', 'file', 'pull', '--recursive',
-                 f'{self.instance_name}{instance_path}',
+                 source_path,
                  host_path],
                 check=True,
                 capture_output=True
