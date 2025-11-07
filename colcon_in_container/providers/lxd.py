@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import glob
 import json
 import os
 from platform import system
@@ -225,14 +226,24 @@ class LXDClient(Provider):
 
     def _copy_from_host_to_instance(self, *, host_path, instance_path):
         """Copy data from the host to the instance."""
-        # Use lxc file push with recursive flag
-        subprocess.run(
-            ['lxc', 'file', 'push', '--recursive', '--create-dirs',
-             host_path,
-             f'{self.instance_name}{instance_path}'],
-            check=True,
-            capture_output=True
-        )
+        # To copy contents of host_path into instance_path (not create a
+        # subdirectory), we need to push each item individually
+        # Get all items in the source directory
+        items = glob.glob(os.path.join(host_path, '*'))
+
+        if not items:
+            # Empty directory or doesn't exist
+            return
+
+        # Push each item to the destination
+        for item in items:
+            subprocess.run(
+                ['lxc', 'file', 'push', '--recursive', '--create-dirs',
+                 item,
+                 f'{self.instance_name}{instance_path}/'],
+                check=True,
+                capture_output=True
+            )
 
     def shell(self):
         """Shell into the instance."""
