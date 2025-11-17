@@ -234,6 +234,17 @@ class LXDClient(Provider):
                 check=True,
                 capture_output=True
             )
+        except subprocess.CalledProcessError as e:
+            logger.error(
+                f'Failed to push file to instance {self.instance_name} '
+                f'at path {instance_file_path}')
+            logger.error(f'Command: {e.cmd}')
+            logger.error(f'Return code: {e.returncode}')
+            if e.stdout:
+                logger.error(f'Stdout: {e.stdout.decode("utf-8")}')
+            if e.stderr:
+                logger.error(f'Stderr: {e.stderr.decode("utf-8")}')
+            raise
         finally:
             # Clean up temporary file
             if os.path.exists(temp_file_path):
