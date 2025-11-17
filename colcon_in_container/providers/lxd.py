@@ -194,7 +194,7 @@ class LXDClient(Provider):
                 # the source name inside temp_dir
                 subprocess.run(
                     ['lxc', 'file', 'pull', '--recursive',
-                     f'{self.instance_name}{instance_path}',
+                     f'{self.instance_name}:{instance_path}',
                      temp_dir],
                     check=True,
                     capture_output=True
@@ -230,7 +230,7 @@ class LXDClient(Provider):
             subprocess.run(
                 ['lxc', 'file', 'push',
                  temp_file_path,
-                 f'{self.instance_name}{instance_file_path}'],
+                 f'{self.instance_name}:{instance_file_path}'],
                 check=True,
                 capture_output=True
             )
@@ -255,7 +255,7 @@ class LXDClient(Provider):
             subprocess.run(
                 ['lxc', 'file', 'push', '--recursive', '--create-dirs',
                  item,
-                 f'{self.instance_name}{instance_path}/'],
+                 f'{self.instance_name}:{instance_path}/'],
                 check=True,
                 capture_output=True
             )
