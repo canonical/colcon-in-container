@@ -215,14 +215,29 @@ class LXDClient(Provider):
 
     def _write_in_instance(self, *, instance_file_path, lines):
         """Write data to a file in the instance."""
-        # Use lxc file push with stdin
-        subprocess.run(
-            ['lxc', 'file', 'push', '-',
-             f'{self.instance_name}{instance_file_path}'],
-            input=lines if isinstance(lines, bytes) else lines.encode('utf-8'),
-            check=True,
-            capture_output=True
-        )
+        # Create a temporary file on host and push it to the instance
+        # Using stdin doesn't work reliably in CI environments
+        with tempfile.NamedTemporaryFile(
+                mode='w', delete=False) as temp_file:
+            if isinstance(lines, str):
+                content = lines
+            else:
+                content = lines.decode('utf-8')
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            subprocess.run(
+                ['lxc', 'file', 'push',
+                 temp_file_path,
+                 f'{self.instance_name}{instance_file_path}'],
+                check=True,
+                capture_output=True
+            )
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
 
     def _copy_from_host_to_instance(self, *, host_path, instance_path):
         """Copy data from the host to the instance."""
