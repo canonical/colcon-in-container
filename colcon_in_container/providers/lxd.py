@@ -228,7 +228,7 @@ class LXDClient(Provider):
 
         try:
             subprocess.run(
-                ['lxc', 'file', 'push',
+                ['lxc', 'file', 'push', '--create-dirs',
                  temp_file_path,
                  f'{self.instance_name}/{instance_file_path}'],
                 check=True,
