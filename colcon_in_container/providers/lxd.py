@@ -77,7 +77,7 @@ class LXDClient(Provider):
         # Create instance (but don't start it yet)
         subprocess.run([
             'lxc', 'init',
-            'ubuntu-minimal',
+            f'ubuntu-minimal:{self.ubuntu_distro}',
             self.instance_name,
             '--ephemeral'
         ], check=True, capture_output=True, text=True)
