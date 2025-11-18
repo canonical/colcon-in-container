@@ -102,7 +102,7 @@ class LXDClient(Provider):
     def _instance_exists(self, instance_name):
         """Check if an LXD instance exists."""
         result = subprocess.run(
-            ['lxc', 'list', instance_name, '--format', 'json'],
+            ['lxc', 'list', f'^{instance_name}$', '--format', 'json'],
             capture_output=True,
             check=True,
             text=True
