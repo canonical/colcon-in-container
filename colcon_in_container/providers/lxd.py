@@ -215,34 +215,25 @@ class LXDClient(Provider):
 
     def _write_in_instance(self, *, instance_file_path, lines):
         """Write data to a file in the instance."""
-        # Create a temporary file with the target filename in a temp directory
-        # Then push it to the parent directory in the instance
+        # Create a temporary file on host and push it to the instance
         # Using stdin doesn't work reliably in CI environments
-        
-        # Extract the filename and parent directory
-        filename = os.path.basename(instance_file_path)
-        parent_dir = os.path.dirname(instance_file_path)
-        
-        # Create a temporary directory on the host
-        temp_dir = tempfile.mkdtemp()
-        temp_file_path = os.path.join(temp_dir, filename)
-        
-        try:
-            # Write content to the temporary file
+        with tempfile.NamedTemporaryFile(
+                mode='w', delete=False) as temp_file:
             if isinstance(lines, str):
                 content = lines
             else:
                 content = lines.decode('utf-8')
-            
-            with open(temp_file_path, 'w') as temp_file:
-                temp_file.write(content)
-            
-            # Push the file to the parent directory in the instance
-            # The trailing slash ensures it goes into the directory
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        # Set file permissions to 0o644 (rw-r--r--) so other users can read it
+        os.chmod(temp_file_path, 0o644)
+
+        try:
             subprocess.run(
                 ['lxc', 'file', 'push', '--create-dirs',
                  temp_file_path,
-                 f'{self.instance_name}{parent_dir}/'],
+                 f'{self.instance_name}{instance_file_path}'],
                 check=True,
                 capture_output=True
             )
@@ -258,11 +249,9 @@ class LXDClient(Provider):
                 logger.error(f'Stderr: {e.stderr.decode("utf-8")}')
             raise
         finally:
-            # Clean up temporary directory and file
+            # Clean up temporary file
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
-            if os.path.exists(temp_dir):
-                os.rmdir(temp_dir)
 
     def _copy_from_host_to_instance(self, *, host_path, instance_path):
         """Copy data from the host to the instance."""
