@@ -262,24 +262,8 @@ class LXDClient(Provider):
 
     def _copy_from_host_to_instance(self, *, host_path, instance_path):
         """Copy data from the host to the instance."""
-        # To copy contents of host_path into instance_path (not create a
-        # subdirectory), we need to push each item individually
-        # Get all items in the source directory
-        items = glob.glob(os.path.join(host_path, '*'))
-
-        if not items:
-            # Empty directory or doesn't exist
-            return
-
-        # Push each item to the destination
-        for item in items:
-            subprocess.run(
-                ['lxc', 'file', 'push', '--recursive', '--create-dirs',
-                 item,
-                 f'{self.instance_name}{instance_path}/'],
-                check=True,
-                capture_output=True
-            )
+        subprocess.run(['lxc', 'file', 'push', '--recursive', '--create-dirs', str(host_path),
+                       f'{self.instance_name}{instance_path}'], check=True, capture_output=True)
 
     def shell(self):
         """Shell into the instance."""
