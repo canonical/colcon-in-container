@@ -229,6 +229,13 @@ class LXDClient(Provider):
         # Set file permissions to 0o644 (rw-r--r--) so other users can read it
         os.chmod(temp_file_path, 0o644)
 
+        # Remove the file in the instance if it exists (ignore errors)
+        subprocess.run(
+            ['lxc', 'exec', self.instance_name, '--',
+             'rm', '-f', instance_file_path],
+            capture_output=True
+        )
+
         try:
             subprocess.run(
                 ['lxc', 'file', 'push', '--create-dirs',
