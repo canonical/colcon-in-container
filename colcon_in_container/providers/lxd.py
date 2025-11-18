@@ -277,8 +277,6 @@ class LXDClient(Provider):
                 check=True,
                 capture_output=True
             )
-        #subprocess.run(['lxc', 'file', 'push', '--recursive', '--create-dirs', str(host_path),
-        #               f'{self.instance_name}{instance_path}'], check=True, capture_output=True)
 
     def shell(self):
         """Shell into the instance."""

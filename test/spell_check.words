@@ -2,6 +2,7 @@ aarch
 abstractmethod
 apache
 buildtool
+chmod
 chown
 cmake
 colcon
