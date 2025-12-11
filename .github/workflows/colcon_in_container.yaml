@@ -42,6 +42,8 @@ jobs:
           sudo apt purge docker.io --yes && true
 
           sudo apt update
+          # removing firefox avoids to update gnome snaps etc.
+          sudo apt remove --purge firefox --yes
           sudo apt upgrade -y
           sudo rm /usr/lib/python3.*/EXTERNALLY-MANAGED || true
           python3 -m pip install --upgrade pip
@@ -116,6 +118,8 @@ jobs:
           sudo apt purge docker.io --yes && true
 
           sudo apt update
+          # removing firefox avoids to update gnome snaps etc.
+          sudo apt remove --purge firefox --yes
           sudo apt upgrade -y
           sudo rm /usr/lib/python3.*/EXTERNALLY-MANAGED || true
           python3 -m pip install --upgrade pip
