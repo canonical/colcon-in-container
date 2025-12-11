@@ -108,8 +108,6 @@ jobs:
       - name: Install LXD
         if: ${{ matrix.provider == 'lxd' }}
         uses: canonical/setup-lxd@v0.1.0
-        with:
-          channel: 6/stable
       - name: Install Multipass
         run: |
           sudo snap install multipass
