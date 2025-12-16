@@ -135,6 +135,7 @@ class Provider(ABC):
             host_path=host_path,
             instance_path=instance_path
         )
+        self.execute_command(['chown', '-R', 'root:root', instance_path])
 
     @abstractmethod
     def shell(self):

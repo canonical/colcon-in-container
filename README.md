@@ -262,8 +262,5 @@ The colcon `in-container` extension can be used to:
 - And more!
 
 ## Troubleshooting
-If you have issues with pylxd and openssl:
-
-Pylxd doesn't work from the apt debian or the pip package. You [must be installed from source](https://discuss.linuxcontainers.org/t/5-0-2-raises-connection-reset-by-peer-exception-on-pylxds-container-execute/16292)
 
 Please open a [GitHub issue](https://github.com/canonical/colcon-in-container/issues) if you face any issue with the tool.
