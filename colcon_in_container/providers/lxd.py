@@ -100,7 +100,7 @@ class LXDClient(Provider):
         cloud_init_data = self._render_jinja_template(pro_token)
 
         # Check if instance already exists and clean it up
-        full_instance_name = self._get_full_instance_name()
+        full_instance_name = self._full_instance_name
         if self._instance_exists(full_instance_name):
             instance_status = self._get_instance_status(full_instance_name)
             if instance_status == 'Running':
@@ -114,14 +114,14 @@ class LXDClient(Provider):
         subprocess.run([
             'lxc', 'init',
             f'ubuntu-minimal:{self.ubuntu_distro}',
-            self._get_full_instance_name(),
+            self._full_instance_name,
             '--ephemeral'
         ], check=True, capture_output=True, text=True)
 
         # Set cloud-init config using stdin to avoid
         # command line length limits and special character issues
         subprocess.run(
-            ['lxc', 'config', 'set', self._get_full_instance_name(),
+            ['lxc', 'config', 'set', self._full_instance_name,
              'user.user-data', '-'],
             input=cloud_init_data.encode('utf-8'),
             check=True,
@@ -130,7 +130,7 @@ class LXDClient(Provider):
 
         # Start instance with cloud-init config applied
         subprocess.run(
-            ['lxc', 'start', self._get_full_instance_name()],
+            ['lxc', 'start', self._full_instance_name],
             check=True,
             capture_output=True
         )
@@ -155,7 +155,8 @@ class LXDClient(Provider):
                 f'Add it using: lxc remote add <name> {endpoint}'
             )
 
-    def _get_full_instance_name(self):
+    @property
+    def _full_instance_name(self):
         """Get the full instance name with remote prefix if applicable."""
         return f'{self.remote_prefix}{self.instance_name}'
 
@@ -201,7 +202,7 @@ class LXDClient(Provider):
 
     def clean_instance(self):
         """Clean the created instance."""
-        full_instance_name = self._get_full_instance_name()
+        full_instance_name = self._full_instance_name
         if self._instance_exists(full_instance_name):
             instance_status = self._get_instance_status(full_instance_name)
             if instance_status == 'Running':
@@ -231,7 +232,7 @@ class LXDClient(Provider):
     def execute_command(self, command):
         """Execute the given command inside the instance."""
         # Execute command in the instance with working directory /ws
-        full_name = self._get_full_instance_name()
+        full_name = self._full_instance_name
         result = subprocess.run(
             ['lxc', 'exec', full_name, '--cwd', '/ws', '--'] + command,
             capture_output=True,
@@ -255,7 +256,7 @@ class LXDClient(Provider):
                 # the source name inside temp_dir
                 subprocess.run(
                     ['lxc', 'file', 'pull', '--recursive',
-                     f'{self._get_full_instance_name()}{instance_path}',
+                     f'{self._full_instance_name}{instance_path}',
                      temp_dir],
                     check=True,
                     capture_output=True
@@ -292,7 +293,7 @@ class LXDClient(Provider):
 
         # Remove the file in the instance if it exists (ignore errors)
         subprocess.run(
-            ['lxc', 'exec', self._get_full_instance_name(), '--',
+            ['lxc', 'exec', self._full_instance_name, '--',
              'rm', '-f', instance_file_path],
             capture_output=True
         )
@@ -301,12 +302,12 @@ class LXDClient(Provider):
             subprocess.run(
                 ['lxc', 'file', 'push', '--create-dirs',
                  temp_file_path,
-                 f'{self._get_full_instance_name()}{instance_file_path}'],
+                 f'{self._full_instance_name}{instance_file_path}'],
                 check=True,
                 capture_output=True
             )
         except subprocess.CalledProcessError as e:
-            full_name = self._get_full_instance_name()
+            full_name = self._full_instance_name
             logger.error(
                 f'Failed to push file to instance {full_name} '
                 f'at path {instance_file_path}')
@@ -335,12 +336,12 @@ class LXDClient(Provider):
             subprocess.run(
                 ['lxc', 'file', 'push', '--recursive', '--create-dirs',
                  item,
-                 f'{self._get_full_instance_name()}{instance_path}/'],
+                 f'{self._full_instance_name}{instance_path}/'],
                 check=True,
                 capture_output=True
             )
 
     def shell(self):
         """Shell into the instance."""
-        full_name = self._get_full_instance_name()
+        full_name = self._full_instance_name
         subprocess.run(['lxc', 'exec', full_name, '--', 'bash'])
