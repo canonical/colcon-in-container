@@ -21,10 +21,10 @@ import shutil
 import subprocess
 import tempfile
 
-
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers.provider import Provider
+import jinja2
 
 
 def _is_lxd_installed():
@@ -122,7 +122,8 @@ class LXDClient(Provider):
 
         # Check if instance already exists and clean it up
         if self._instance_exists(self.instance_name):
-            instance_status = self._get_instance_status(self.full_instance_name)
+            instance_status = self._get_instance_status(
+                self.full_instance_name)
             if instance_status == 'Running':
                 self._stop_instance(self.full_instance_name)
             # Delete the instance after stopping
@@ -186,6 +187,66 @@ class LXDClient(Provider):
                 f'Add it using: lxc remote add <name> {remote_input}'
             )
 
+    def _get_target_architecture(self):
+        """Get the architecture of the target LXD server.
+
+        Returns the architecture of the remote server if using --remote,
+        otherwise returns the host architecture.
+        """
+        if self.remote_prefix:
+            # Query remote server for its architecture
+            try:
+                # Use lxc info to get server info from the remote
+                remote_name = self.remote_prefix.rstrip(':')
+                result = subprocess.run(
+                    ['lxc', 'info', f'{remote_name}:'],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                if result.returncode == 0:
+                    # Parse the output to find architecture
+                    for line in result.stdout.split('\n'):
+                        if 'architecture:' in line.lower():
+                            arch = line.split(':', 1)[1].strip()
+                            # Normalize architecture names
+                            if arch in ['x86_64', 'x64', 'AMD64']:
+                                return 'amd64'
+                            elif arch in ['aarch64', 'ARM64']:
+                                return 'arm64'
+                            return arch
+            except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                logger.warning(
+                    'Failed to detect remote architecture, '
+                    'using host architecture as fallback')
+
+        # Fallback to host architecture
+        from platform import machine
+        host_arch = machine()
+        if host_arch in ['AMD64', 'x86_64', 'x64']:
+            return 'amd64'
+        elif host_arch in ['ARM64', 'aarch64']:
+            return 'arm64'
+        return host_arch
+
+    def _render_jinja_template(self, pro_token):
+        """Override to use target architecture instead of host architecture."""
+        config_directory = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), 'config')
+        cloud_init_file = os.path.join(
+            config_directory, 'cloud-init.yaml')
+        with open(cloud_init_file, 'r') as f:
+            config = f.read()
+
+        template = jinja2.Environment().from_string(source=config)
+        target_architecture = self._get_target_architecture()
+        configuration = {'architecture': target_architecture,
+                         'distro_release': self.ubuntu_distro}
+        if pro_token:
+            configuration['pro_token'] = pro_token
+
+        return template.render(configuration)
+
     @property
     def full_instance_name(self):
         """Get the full instance name with remote prefix if applicable."""
@@ -237,7 +298,8 @@ class LXDClient(Provider):
     def clean_instance(self):
         """Clean the created instance."""
         if self._instance_exists(self.instance_name):
-            instance_status = self._get_instance_status(self.full_instance_name)
+            instance_status = self._get_instance_status(
+                self.full_instance_name)
             if instance_status == 'Running':
                 self._stop_instance(self.full_instance_name)
             # Delete the instance after stopping
