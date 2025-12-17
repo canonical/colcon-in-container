@@ -121,13 +121,12 @@ class LXDClient(Provider):
         cloud_init_data = self._render_jinja_template(pro_token)
 
         # Check if instance already exists and clean it up
-        full_instance_name = self.full_instance_name
-        if self._instance_exists(full_instance_name):
-            instance_status = self._get_instance_status(full_instance_name)
+        if self._instance_exists(self.instance_name):
+            instance_status = self._get_instance_status(self.full_instance_name)
             if instance_status == 'Running':
-                self._stop_instance(full_instance_name)
+                self._stop_instance(self.full_instance_name)
             # Delete the instance after stopping
-            self._delete_instance(full_instance_name)
+            self._delete_instance(self.full_instance_name)
 
         logger.info('Downloading the image then creating the LXD instance')
 
@@ -194,8 +193,11 @@ class LXDClient(Provider):
 
     def _instance_exists(self, instance_name):
         """Check if an LXD instance exists."""
+        instance_to_check = f'^{instance_name}$'
+        if self.remote_prefix:
+            instance_to_check = f'{self.remote_prefix}{instance_to_check}'
         result = subprocess.run(
-            ['lxc', 'list', f'^{instance_name}$', '--format', 'json'],
+            ['lxc', 'list', instance_to_check, '--format', 'json'],
             capture_output=True,
             check=True,
             text=True
@@ -234,13 +236,12 @@ class LXDClient(Provider):
 
     def clean_instance(self):
         """Clean the created instance."""
-        full_instance_name = self.full_instance_name
-        if self._instance_exists(full_instance_name):
-            instance_status = self._get_instance_status(full_instance_name)
+        if self._instance_exists(self.instance_name):
+            instance_status = self._get_instance_status(self.full_instance_name)
             if instance_status == 'Running':
-                self._stop_instance(full_instance_name)
+                self._stop_instance(self.full_instance_name)
             # Delete the instance after stopping
-            self._delete_instance(full_instance_name)
+            self._delete_instance(self.full_instance_name)
 
     def _is_lxd_initialised(self):
         """Check if LXD is initialized by checking the default profile."""
@@ -365,6 +366,7 @@ class LXDClient(Provider):
 
         # Push each item to the destination
         for item in items:
+            breakpoint()
             subprocess.run(
                 ['lxc', 'file', 'push', '--recursive', '--create-dirs',
                  item,
