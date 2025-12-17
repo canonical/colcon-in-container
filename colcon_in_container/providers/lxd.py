@@ -24,7 +24,6 @@ import tempfile
 from colcon_in_container.logging import logger
 from colcon_in_container.providers import exceptions
 from colcon_in_container.providers.provider import Provider
-import jinja2
 
 
 def _is_lxd_installed():
@@ -118,7 +117,9 @@ class LXDClient(Provider):
             raise exceptions.ProviderNotConfiguredError(
                 'LXD is not initialised. Please run `lxd init --auto`')
 
-        cloud_init_data = self._render_jinja_template(pro_token)
+        target_architecture = self._get_target_architecture()
+        cloud_init_data = self._render_jinja_template(
+            pro_token, architecture=target_architecture)
 
         # Check if instance already exists and clean it up
         if self._instance_exists(self.instance_name):
@@ -228,24 +229,6 @@ class LXDClient(Provider):
         elif host_arch in ['ARM64', 'aarch64']:
             return 'arm64'
         return host_arch
-
-    def _render_jinja_template(self, pro_token):
-        """Override to use target architecture instead of host architecture."""
-        config_directory = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'config')
-        cloud_init_file = os.path.join(
-            config_directory, 'cloud-init.yaml')
-        with open(cloud_init_file, 'r') as f:
-            config = f.read()
-
-        template = jinja2.Environment().from_string(source=config)
-        target_architecture = self._get_target_architecture()
-        configuration = {'architecture': target_architecture,
-                         'distro_release': self.ubuntu_distro}
-        if pro_token:
-            configuration['pro_token'] = pro_token
-
-        return template.render(configuration)
 
     @property
     def full_instance_name(self):
