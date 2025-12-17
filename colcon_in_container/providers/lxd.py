@@ -411,7 +411,6 @@ class LXDClient(Provider):
 
         # Push each item to the destination
         for item in items:
-            breakpoint()
             subprocess.run(
                 ['lxc', 'file', 'push', '--recursive', '--create-dirs',
                  item,
