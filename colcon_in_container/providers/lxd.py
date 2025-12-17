@@ -57,6 +57,27 @@ def _find_remote_name_for_endpoint(endpoint):
     return None
 
 
+def _is_remote_name(name):
+    """Check if the given name is a configured remote name.
+
+    Returns True if the name exists in lxc remotes, False otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ['lxc', 'remote', 'list', '--format', 'json'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode == 0:
+            remotes = json.loads(result.stdout)
+            return name in remotes
+    except (subprocess.TimeoutExpired, json.JSONDecodeError,
+            FileNotFoundError):
+        pass
+    return False
+
+
 class LXDClient(Provider):
     """LXD client interacting with the LXD socket."""
 
@@ -135,24 +156,35 @@ class LXDClient(Provider):
             capture_output=True
         )
 
-    def _get_remote_prefix(self, endpoint):
+    def _get_remote_prefix(self, remote_input):
         """Get the remote name prefix for lxc commands.
+
+        Args:
+            remote_input: Either a remote name or a URL endpoint.
 
         Returns the remote name followed by colon (e.g., 'myremote:')
         or empty string if using local LXD.
         """
-        remote_name = _find_remote_name_for_endpoint(endpoint)
+        # First, check if it's already a configured remote name
+        if _is_remote_name(remote_input):
+            logger.info(f'Using configured remote: {remote_input}')
+            return f'{remote_input}:'
+
+        # Otherwise, try to find it as a URL endpoint
+        remote_name = _find_remote_name_for_endpoint(remote_input)
         if remote_name:
-            logger.info(f'Found configured remote: {remote_name}')
+            logger.info(
+                f'Found configured remote: {remote_name} '
+                f'for endpoint {remote_input}')
             return f'{remote_name}:'
         else:
             logger.warning(
-                f'Remote {endpoint} not found in lxc configuration. '
-                f'Please add it using: lxc remote add <name> {endpoint}'
+                f'Remote {remote_input} not found in lxc configuration. '
+                f'Please add it using: lxc remote add <name> {remote_input}'
             )
             raise exceptions.ProviderClientError(
-                f'Remote LXD server {endpoint} is not configured. '
-                f'Add it using: lxc remote add <name> {endpoint}'
+                f'Remote LXD server {remote_input} is not configured. '
+                f'Add it using: lxc remote add <name> {remote_input}'
             )
 
     @property

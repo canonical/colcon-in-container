@@ -109,6 +109,9 @@ To use a remote LXD server:
 
 3. Use the `--remote` flag with `colcon-in-container`:
    ```
+   # You can use either the remote name or the URL
+   colcon build-in-container --remote my-remote --ros-distro jazzy
+   # OR
    colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro jazzy
    ```
 
