@@ -180,7 +180,7 @@ class LXDClient(Provider):
             return f'{remote_name}:'
         else:
             logger.warning(
-                f'Remote {remote_input} not found in lxc configuration. '  # noqa: E713
+                f'Remote {remote_input} not found in lxc configuration. '  # noqa: E713,E501
                 f'Please add it using: lxc remote add <name> {remote_input}'
             )
             raise exceptions.ProviderClientError(
