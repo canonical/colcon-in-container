@@ -42,7 +42,11 @@ def _get_lxc_remotes():
         if result.returncode != 0:
             return None
         return json.loads(result.stdout)
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+    except (
+        subprocess.TimeoutExpired,
+        json.JSONDecodeError,
+        FileNotFoundError
+    ):
         return None
 
 
@@ -308,7 +312,12 @@ class LXDClient(Provider):
         """Execute the given command inside the instance."""
         # Execute command in the instance with working directory /ws
         result = subprocess.run(
-            ['lxc', 'exec', self.full_instance_name, '--cwd', '/ws', '--'] + command,
+            ['lxc',
+             'exec',
+             self.full_instance_name,
+             '--cwd',
+             '/ws',
+             '--'] + command,
             capture_output=True,
             text=True
         )
