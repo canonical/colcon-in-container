@@ -93,7 +93,7 @@ lxd init --auto
 
 For developers who need to build packages for different architectures (e.g., ARM packages on an x86_64 laptop), `colcon-in-container` supports connecting to remote LXD servers. This enables building at native speed on remote ARM servers, avoiding the slow performance of QEMU emulation.
 
-To use a remote LXD server:
+To use a [remote LXD server](https://documentation.ubuntu.com/lxd/latest/remotes/):
 
 1. Set up your remote LXD server to accept connections:
    ```
