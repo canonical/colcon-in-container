@@ -20,12 +20,15 @@ firewalld
 frontend
 functools
 github
+hkps
 howto
 https
 initialised
 initialising
 iterdir
 jinja
+keyid
+keyserver
 licence
 linux
 lstrip
