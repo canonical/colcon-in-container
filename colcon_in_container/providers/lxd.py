@@ -193,7 +193,7 @@ class LXDClient(Provider):
         """Get the architecture of the target LXD server.
 
         Returns the architecture of the remote server if using --remote,
-        otherwise returns the host architecture.
+        otherwise returns None.
         """
         if self.remote_prefix:
             # Query remote server for its architecture
@@ -222,14 +222,7 @@ class LXDClient(Provider):
                     'Failed to detect remote architecture, '
                     'using host architecture as fallback')
 
-        # Fallback to host architecture
-        from platform import machine
-        host_arch = machine()
-        if host_arch in ['AMD64', 'x86_64', 'x64']:
-            return 'amd64'
-        elif host_arch in ['ARM64', 'aarch64']:
-            return 'arm64'
-        return host_arch
+        return None
 
     @property
     def full_instance_name(self):
