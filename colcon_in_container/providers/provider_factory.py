@@ -49,6 +49,11 @@ class ProviderFactory(object):
         if name == 'lxd':
             return provider(ros_distro, pro_token, remote)  # type: ignore
         else:
+            if remote:
+                raise exceptions.ProviderNotConfiguredError(
+                    f'Remote is only supported by the LXD provider; got: {name}'
+                )
+
             return provider(ros_distro, pro_token)  # type: ignore
 
 

@@ -30,29 +30,36 @@ def _is_lxd_installed():
     return shutil.which('lxd') is not None
 
 
-def _find_remote_name_for_endpoint(endpoint):
-    """Find the lxc remote name for a given endpoint URL.
-
-    Returns the remote name if found, None otherwise.
-    """
+def _get_lxc_remotes():
+    """Return configured lxc remotes as a dict, or None on error."""
     try:
         result = subprocess.run(
             ['lxc', 'remote', 'list', '--format', 'json'],
             capture_output=True,
             text=True,
-            timeout=5
+            timeout=5,
         )
-        if result.returncode == 0:
-            remotes = json.loads(result.stdout)
-            # Normalize endpoint for comparison (remove trailing slash)
-            normalized_endpoint = endpoint.rstrip('/')
-            for remote_name, remote_info in remotes.items():
-                remote_addr = remote_info.get('Addr', '').rstrip('/')
-                if remote_addr == normalized_endpoint:
-                    return remote_name
-    except (subprocess.TimeoutExpired, json.JSONDecodeError,
-            FileNotFoundError):
-        pass
+        if result.returncode != 0:
+            return None
+        return json.loads(result.stdout)
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+        return None
+
+
+def _find_remote_name_for_endpoint(endpoint):
+    """Find the lxc remote name for a given endpoint URL.
+
+    Returns the remote name if found, None otherwise.
+    """
+    remotes = _get_lxc_remotes()
+    if remotes is None:
+        return None
+    # Normalize endpoint for comparison (remove trailing slash)
+    normalized_endpoint = endpoint.rstrip('/')
+    for remote_name, remote_info in remotes.items():
+        remote_addr = remote_info.get('Addr', '').rstrip('/')
+        if remote_addr == normalized_endpoint:
+            return remote_name
     return None
 
 
@@ -61,20 +68,10 @@ def _is_remote_name(name):
 
     Returns True if the name exists in lxc remotes, False otherwise.
     """
-    try:
-        result = subprocess.run(
-            ['lxc', 'remote', 'list', '--format', 'json'],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            remotes = json.loads(result.stdout)
-            return name in remotes
-    except (subprocess.TimeoutExpired, json.JSONDecodeError,
-            FileNotFoundError):
-        pass
-    return False
+    remotes = _get_lxc_remotes()
+    if remotes is None:
+        return False
+    return name in remotes
 
 
 class LXDClient(Provider):
@@ -310,9 +307,8 @@ class LXDClient(Provider):
     def execute_command(self, command):
         """Execute the given command inside the instance."""
         # Execute command in the instance with working directory /ws
-        full_name = self.full_instance_name
         result = subprocess.run(
-            ['lxc', 'exec', full_name, '--cwd', '/ws', '--'] + command,
+            ['lxc', 'exec', self.full_instance_name, '--cwd', '/ws', '--'] + command,
             capture_output=True,
             text=True
         )
@@ -385,9 +381,8 @@ class LXDClient(Provider):
                 capture_output=True
             )
         except subprocess.CalledProcessError as e:
-            full_name = self.full_instance_name
             logger.error(
-                f'Failed to push file to instance {full_name} '
+                f'Failed to push file to instance {self.full_instance_name} '
                 f'at path {instance_file_path}')
             logger.error(f'Command: {e.cmd}')
             logger.error(f'Return code: {e.returncode}')
@@ -421,5 +416,4 @@ class LXDClient(Provider):
 
     def shell(self):
         """Shell into the instance."""
-        full_name = self.full_instance_name
-        subprocess.run(['lxc', 'exec', full_name, '--', 'bash'])
+        subprocess.run(['lxc', 'exec', self.full_instance_name, '--', 'bash'])
