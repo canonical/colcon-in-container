@@ -118,9 +118,12 @@ class LXDClient(Provider):
             raise exceptions.ProviderNotConfiguredError(
                 'LXD is not initialised. Please run `lxd init --auto`')
 
-        target_architecture = self._get_target_architecture()
+        architecture = self._get_target_architecture()
+        if architecture is None:
+            # fall back to host architecture if target is not detected
+            architecture = self._get_host_architecture()
         cloud_init_data = self._render_jinja_template(
-            pro_token, architecture=target_architecture)
+            pro_token, architecture)
 
         # Check if instance already exists and clean it up
         if self._instance_exists(self.instance_name):

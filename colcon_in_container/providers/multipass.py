@@ -61,7 +61,10 @@ class MultipassClient(Provider):
         self.execute_command(['cloud-init', 'status', '--wait'])
 
     def _render_and_write_jinja_template(self, pro_token):
-        cloud_init_content = self._render_jinja_template(pro_token)
+        architecture = self._get_host_architecture()
+        cloud_init_content = self._render_jinja_template(
+            pro_token,
+            architecture)
         self.rendered_cloud_init_path = '.colcon-in-container-cloud-init.yaml'
         with open(self.rendered_cloud_init_path, 'w') as f:
             written = f.write(cloud_init_content)
