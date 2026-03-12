@@ -79,6 +79,16 @@ def add_instance_argument(parser):
         help='Environment provider.'
     )
 
+    parser.add_argument(
+        '--remote',
+        type=str,
+        default=None,
+        help='Remote LXD server to use for builds. '
+             'Allows building on remote servers for '
+             'cross-architecture builds. '
+             'Example: https://remote-server:8443'
+    )
+
 
 def add_pro_arguments(parser):
     """Add the Ubuntu Pro token arguments to the parser."""

@@ -38,7 +38,17 @@ class Provider(ABC):
         """Clean the created instance."""
         pass
 
-    def _render_jinja_template(self, pro_token):
+    def _get_host_architecture(self):
+        architecture = machine()
+        # support for windows 10 and 11 returning all kinds of values
+        # bugs.python.org/issue7146
+        if architecture in ['AMD64', 'x86_64', 'x64']:
+            architecture = 'amd64'
+        elif architecture in ['ARM64', 'aarch64']:
+            architecture = 'arm64'
+        return architecture
+
+    def _render_jinja_template(self, pro_token, architecture):
         config_directory = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), 'config')
         cloud_init_file = os.path.join(
@@ -47,14 +57,8 @@ class Provider(ABC):
             config = f.read()
 
         template = jinja2.Environment().from_string(source=config)
-        host_architecture = machine()
-        # support for windows 10 and 11 returning all kinds of values
-        # bugs.python.org/issue7146
-        if host_architecture in ['AMD64', 'x86_64', 'x64']:
-            host_architecture = 'amd64'
-        elif host_architecture in ['ARM64', 'aarch64']:
-            host_architecture = 'arm64'
-        configuration = {'architecture': host_architecture,
+
+        configuration = {'architecture': architecture,
                          'distro_release': self.ubuntu_distro}
         if pro_token:
             configuration['pro_token'] = pro_token

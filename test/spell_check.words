@@ -26,6 +26,7 @@ https
 initialised
 initialising
 iterdir
+jetson
 jinja
 keyid
 keyserver
@@ -34,12 +35,15 @@ linux
 lstrip
 multipass
 mypy
+myremote
 noninteractive
 noqa
+nvidia
 pathlib
 plugin
 pyopenssl
 pytest
+qemu
 quickstart
 readthedocs
 returncode
