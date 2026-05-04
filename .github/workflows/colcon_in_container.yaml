@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04, [self-hosted, linux, X64, jammy, xlarge]]
-        ros_version: [jazzy, humble, kilted, rolling]
+        ros_version: [jazzy, humble, kilted, lyrical, rolling]
         provider: [lxd, multipass]
         exclude:
           - os: ubuntu-22.04
@@ -173,4 +173,3 @@ jobs:
           ls release_in_container/COLCON_IGNORE
           ls release_in_container/pendulum_msgs/debian
           ls release_in_container/pendulum_control/debian
-

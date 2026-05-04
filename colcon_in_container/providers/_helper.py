@@ -20,7 +20,8 @@ _ros2_ubuntu_distro = {'rolling': 'noble',
                        'foxy': 'focal',
                        'humble': 'jammy',
                        'jazzy': 'noble',
-                       'kilted': 'noble'}
+                       'kilted': 'noble',
+                       'lyrical': 'resolute'}
 
 
 def get_ubuntu_distro(ros_distro):
