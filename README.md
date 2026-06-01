@@ -22,7 +22,7 @@ lxd init --auto
 
 - Then call colcon with the build-in-container verb:
 ```
-colcon --log-level=info build-in-container --ros-distro jazzy
+colcon --log-level=info build-in-container --ros-distro lyrical
 ```
 
 See the [usage](#usage) section for advanced information on installation and tool usage.
@@ -113,9 +113,9 @@ To use a [remote LXD server](https://documentation.ubuntu.com/lxd/latest/remotes
 3. Use the `--remote` flag with `colcon-in-container`:
    ```
    # You can use either the remote name or the URL
-   colcon build-in-container --remote my-remote --ros-distro jazzy
+   colcon build-in-container --remote my-remote --ros-distro lyrical
    # OR
-   colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro jazzy
+   colcon build-in-container --remote https://remote-server-ip:8443 --ros-distro lyrical
    ```
 
 The tool will automatically use the client certificates for authentication with the remote LXD server.
@@ -147,7 +147,7 @@ colcon build-in-container
 
 Advanced usage:
 ```
-colcon --log-level=info build-in-container --ros-distro jazzy --colcon-build-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
+colcon --log-level=info build-in-container --ros-distro lyrical --colcon-build-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
 ```
 
 Usage help:
@@ -189,7 +189,7 @@ colcon test-in-container
 
 Advanced usage:
 ```
-colcon --log-level=info test-in-container --ros-distro jazzy --colcon-test-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
+colcon --log-level=info test-in-container --ros-distro lyrical --colcon-test-args "--cmake-args -DCMAKE_BUILD_TYPE=Release" --debug
 ```
 
 Usage help:
@@ -232,7 +232,7 @@ colcon release-in-container
 
 Advanced usage:
 ```
-colcon --log-level=info release-in-container --ros-distro jazzy --bloom-generator rosdebian --debug
+colcon --log-level=info release-in-container --ros-distro lyrical --bloom-generator rosdebian --debug
 ```
 
 Usage help:
@@ -309,7 +309,7 @@ If you're developing on an x86_64 laptop but need to build ARM packages for devi
 
 ```bash
 # Build for ARM at native speed using a remote ARM server
-colcon build-in-container --remote https://arm-server-ip:8443 --ros-distro jazzy
+colcon build-in-container --remote https://arm-server-ip:8443 --ros-distro lyrical
 ```
 
 This avoids the slow performance of QEMU emulation by building directly on ARM hardware.
