@@ -16,11 +16,12 @@
 from platform import processor
 
 
-_ros2_ubuntu_distro = {'rolling': 'noble',
+_ros2_ubuntu_distro = {'rolling': 'resolute',
                        'foxy': 'focal',
                        'humble': 'jammy',
                        'jazzy': 'noble',
-                       'kilted': 'noble'}
+                       'kilted': 'noble',
+                       'lyrical': 'resolute'}
 
 
 def get_ubuntu_distro(ros_distro):

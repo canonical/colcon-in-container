@@ -1,6 +1,10 @@
 ## template: jinja
 #cloud-config
 
+bootcmd:
+ - [apt-get, update]
+ - [apt-get, install, -y, gpg]
+
 {% if not pro_token %}
 apt:
   sources:
